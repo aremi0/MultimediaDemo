@@ -17,6 +17,7 @@ public class DemoController {
 
     @GetMapping("/demo")
     public ResponseEntity<String> demo() {
+        log.info("Richiesta arrivata");
         return ResponseEntity.ok("Hello World");
     }
 }
