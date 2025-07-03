@@ -3,8 +3,9 @@ services:
   kafka:
     image: bitnami/kafka:latest
     container_name: kafka
-    ports:
-      - "9092:9092"
+    expose:
+      - "9092"
+      - "9093"
     environment:
       - KAFKA_ENABLE_KRAFT=true
       - KAFKA_KRAFT_CLUSTER_ID=kafka-cluster-id
@@ -40,7 +41,7 @@ services:
     working_dir: /app
     command: ["java", "-jar", "/app.jar"]
     ports:
-      - "8761:8761"
+      - 8761:8761
     networks:
       - multimedia
 
@@ -54,7 +55,7 @@ services:
     networks:
       - multimedia
     ports:
-      - "8080:8080" # Mappa la porta interna 8080 del container alla porta 8080 dell'host
+      - 8080:8080 # Mappa la porta interna 8080 del container alla porta 8080 dell'host
     depends_on:
       - eurekaServer
 
