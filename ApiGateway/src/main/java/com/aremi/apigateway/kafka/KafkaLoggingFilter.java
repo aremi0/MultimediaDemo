@@ -1,5 +1,6 @@
 package com.aremi.apigateway.kafka;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
@@ -12,13 +13,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
+@RequiredArgsConstructor
 public class KafkaLoggingFilter implements WebFilter {
-    private KafkaTemplate<String, String> kafkaTemplate;
-    private static final String TOPIC = "gateway-log";
-
-    public KafkaLoggingFilter(KafkaTemplate<String, String> kafkaTemplate) {
-        this.kafkaTemplate = kafkaTemplate;
-    }
+    private final String TOPIC = "gateway-log";
+    private final KafkaTemplate<String, String> kafkaTemplate;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
