@@ -1,0 +1,63 @@
+services:
+
+  eurekaServer:
+    image: eclipse-temurin:21-jre
+    container_name: eureka-server
+    volumes:
+      - ./EurekaServer/target/EurekaServer-0.0.1-SNAPSHOT.jar:/app.jar
+    working_dir: /app
+    command: ["java", "-jar", "/app.jar"]
+    ports:
+      - "8761:8761"
+    networks:
+      - multimedia
+
+  gatewayService:
+    image: eclipse-temurin:21-jre # Usa una base con Java 21
+    container_name: gateway-service
+    volumes:
+      - ./ApiGateway/target/ApiGateway-0.0.1-SNAPSHOT.jar:/app.jar
+    working_dir: /app
+    command: ["java", "-jar", "/app.jar"]
+    networks:
+      - multimedia
+    ports:
+      - "8080:8080" # Mappa la porta interna 8080 del container alla porta 8080 dell'host
+    depends_on:
+      - eurekaServer
+
+  demoService1:
+    image: eclipse-temurin:21-jre # Usa una base con Java 21
+    container_name: demo-service-1
+    volumes:
+      - ./DemoService/target/DemoService-0.0.1-SNAPSHOT.jar:/app.jar
+    working_dir: /app
+    command: ["java", "-jar", "/app.jar"]
+    networks:
+      - multimedia
+    depends_on:
+      - eurekaServer
+
+  demoService2:
+    image: eclipse-temurin:21-jre # Usa una base con Java 21
+    container_name: demo-service-2
+    volumes:
+      - ./DemoService/target/DemoService-0.0.1-SNAPSHOT.jar:/app.jar
+    working_dir: /app
+    command: ["java", "-jar", "/app.jar"]
+    networks:
+      - multimedia
+    depends_on:
+      - eurekaServer
+
+networks:
+  multimedia:
+    name: multimedia
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+# docker-compose up
+# oppure in modalità detatched per non bloccare il terminale
+# docker-compose up -d
