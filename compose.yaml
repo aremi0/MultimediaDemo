@@ -1,5 +1,6 @@
 services:
 
+  ############################# Kafka #############################
   kafka:
     image: bitnami/kafka:latest
     container_name: kafka
@@ -20,7 +21,6 @@ services:
     networks:
       - multimedia
 
-
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-ui
@@ -31,8 +31,23 @@ services:
       - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
     networks:
       - multimedia
+  ##########################################################
 
+  ########################## Server per OAuth2 ##########################
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.1.4
+    container_name: keycloak
+    command: [ "start-dev" ]
+    ports:
+      - 8081:8080
+    environment:
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+    networks:
+      - multimedia
+  ##########################################################
 
+  ############################# Load Balancing / ApiGateway #############################
   eurekaServer:
     image: eclipse-temurin:21-jre
     container_name: eureka-server
@@ -58,7 +73,9 @@ services:
       - 8080:8080 # Mappa la porta interna 8080 del container alla porta 8080 dell'host
     depends_on:
       - eurekaServer
+  ##########################################################
 
+  ############################# Servizi... #############################
   demoService1:
     image: eclipse-temurin:21-jre # Usa una base con Java 21
     container_name: demo-service-1
