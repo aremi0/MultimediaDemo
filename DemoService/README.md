@@ -1,1 +1,1 @@
-Servizio DEMO per verificare il funzionamento della comunicazione interna
+Servizio DEMO per verificare il funzionamento della comunicazione interna.
