@@ -43,6 +43,9 @@ services:
     environment:
       - KC_BOOTSTRAP_ADMIN_USERNAME=admin
       - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+      - KC_HOSTNAME=keycloak
+      - KC_HOSTNAME_STRICT=false
+      - KC_HOSTNAME_STRICT_HTTPS=false
     networks:
       - multimedia
   ##########################################################
@@ -73,6 +76,7 @@ services:
       - 8080:8080 # Mappa la porta interna 8080 del container alla porta 8080 dell'host
     depends_on:
       - eurekaServer
+      - keycloak
   ##########################################################
 
   ############################# Servizi... #############################
@@ -87,6 +91,7 @@ services:
       - multimedia
     depends_on:
       - eurekaServer
+      - keycloak
 
   demoService2:
     image: eclipse-temurin:21-jre # Usa una base con Java 21
@@ -99,6 +104,7 @@ services:
       - multimedia
     depends_on:
       - eurekaServer
+      - keycloak
 
 networks:
   multimedia:

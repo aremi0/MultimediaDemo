@@ -5,7 +5,6 @@ Questo documento spiega come configurare un server Keycloak, creare un realm, un
 ---
 
 ## 1. Accesso alla console di amministrazione
-
 Apri il browser e vai a:
 
 ```
@@ -27,12 +26,19 @@ Effettua il login con:
 
 ---
 
-## 3. Creazione del Client OAuth2
+## 3. Creazione del Realm-role (Ruolo) <opzionale>
+
+1. Nel pannello a sinistra, clicca su **Realm roles**.
+2. Dai un nome al ruolo, ad esempio `user-role`.
+3. Salva.
+
+---
+
+## 4. Creazione del Client OAuth2
 
 1. Dal menu a sinistra seleziona **Clients**.
 2. Clicca su **Create**.
 3. Inserisci:
-
     * Client ID: `gateway-service`
     * Client Protocol: `openid-connect`
     * Root URL: lascia vuoto o metti l'URL del gateway interno (es. `http://gateway-service:8080/`)
@@ -64,6 +70,11 @@ Effettua il login con:
 6. Vai nella tab **Credentials**.
 7. Imposta la password (esempio: `demo`) e disabilita l’opzione **Temporary** (per evitare richieste di cambio password).
 8. Salva.
+
+### <opzionale> **Assegnazione ruolo**
+1. Vai su Users → seleziona l’utente (es. demo).
+2. Vai su Role Mappings.
+3. Seleziona il ruolo `user-role` da **Assign role** (seleziona filtro `Filter by realms roles`), clicca su **Assign**.
 
 ---
 

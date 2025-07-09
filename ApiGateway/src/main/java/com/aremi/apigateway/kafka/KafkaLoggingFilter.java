@@ -25,9 +25,17 @@ public class KafkaLoggingFilter implements WebFilter {
         String path = exchange.getRequest().getURI().getPath();
         Instant timestamp = Instant.now();
 
+        // Estrai gli header come mappa semplice (da MultiValueMap a Map<String, String>)
+        Map<String, String> headersMap = new HashMap<>();
+        exchange.getRequest().getHeaders().forEach((key, values) -> {
+            // Unisci i valori multipli in una singola stringa separata da virgole
+            headersMap.put(key, String.join(",", values));
+        });
+
         Map<String, Object> logMap = new HashMap<>();
         logMap.put("method", method);
         logMap.put("path", path);
+        logMap.put("headers", headersMap);
         logMap.put("timestamp", timestamp.toString());
 
         // Trasforma la mappa in JSON (puoi usare la tua libreria preferita)
