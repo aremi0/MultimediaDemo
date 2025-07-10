@@ -37,15 +37,47 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:26.1.4
     container_name: keycloak
-    command: [ "start-dev" ]
-    ports:
-      - 8081:8080
+    command: [ "start" ]
     environment:
-      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
-      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://keycloak-db:5432/keycloak
+      - KC_DB_USERNAME=keycloak
+      - KC_DB_PASSWORD=keycloak
+      - KC_HTTP_ENABLED=true
       - KC_HOSTNAME=keycloak
       - KC_HOSTNAME_STRICT=false
-      - KC_HOSTNAME_STRICT_HTTPS=false
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+      # Import opzionale:
+      #- KC_IMPORT=/opt/keycloak/data/import/my-realm.json
+    ports:
+      - 8081:8080
+    volumes:
+      - ./realms:/opt/keycloak/data/import
+    networks:
+      - multimedia
+    depends_on:
+      - keycloak-postgres
+
+  keycloak-postgres:
+    image: postgres:15
+    container_name: keycloak-db
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+    restart: unless-stopped
+    expose:
+      - 5432
+    volumes:
+      - keycloak_data:/var/lib/postgresql/data
+    networks:
+      - multimedia
+
+  curl-client:
+    image: alpine/curl
+    container_name: curl-client
+    command: tail -f /dev/null
     networks:
       - multimedia
   ##########################################################
@@ -105,6 +137,9 @@ services:
     depends_on:
       - eurekaServer
       - keycloak
+
+volumes:
+  keycloak_data:
 
 networks:
   multimedia:

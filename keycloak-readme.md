@@ -5,6 +5,8 @@ Questo documento spiega come configurare un server Keycloak, creare un realm, un
 ---
 
 ## 1. Accesso alla console di amministrazione
+Switchare la ENV `KC_HOSTNAME=keycloak` per poter accedere alla console dal browser, dopo le modifiche riportare il valore a `keycloak`.  
+
 Apri il browser e vai a:
 
 ```
@@ -29,12 +31,12 @@ Effettua il login con:
 ## 3. Creazione del Realm-role (Ruolo) <opzionale>
 
 1. Nel pannello a sinistra, clicca su **Realm roles**.
-2. Dai un nome al ruolo, ad esempio `user-role`.
+2. Dai un nome al ruolo, ad esempio `USER`.
 3. Salva.
 
 ---
 
-## 4. Creazione del Client OAuth2
+## 4. Creazione del Client 'confidential' per la creazione del token (login)
 
 1. Dal menu a sinistra seleziona **Clients**.
 2. Clicca su **Create**.
@@ -55,7 +57,26 @@ Effettua il login con:
 
 ---
 
-## 5. Creazione Utente
+## 5. Creazione del Client 'bearer-only' per proteggere i servizi specifici
+
+1. Dal menu a sinistra seleziona **Clients**.
+2. Clicca su **Create**.
+3. Inserisci:
+   * Client ID: `demo-service`
+   * Client Protocol: `openid-connect`
+   * Root URL: lascia vuoto
+4. Salva.
+5. Configura il client:
+   * Access Type: `Off` (**Client authentication**: `Off`)
+   * Authorization: `Off`
+   * Abilita: `Standard Flow` (authorization code)
+   * Abilita: `Direct Access Grants` (password grant)
+   * Inserisci Valid Redirect URIs, ad esempio `*` (per test, in produzione specificare gli URL esatti)
+6. Salva.
+
+---
+
+## 6. Creazione Utente
 
 1. Dal menu a sinistra seleziona **Users**.
 2. Clicca su **Add user**.
@@ -74,16 +95,16 @@ Effettua il login con:
 ### <opzionale> **Assegnazione ruolo**
 1. Vai su Users → seleziona l’utente (es. demo).
 2. Vai su Role Mappings.
-3. Seleziona il ruolo `user-role` da **Assign role** (seleziona filtro `Filter by realms roles`), clicca su **Assign**.
+3. Seleziona il ruolo `USER` da **Assign role** (seleziona filtro `Filter by realms roles`), clicca su **Assign**.
 
 ---
 
-## 6. Testing dell'autenticazione
+## 7. Testing dell'autenticazione
 
-Usa `curl` per ottenere un token con grant type password:
+Usa il container `curl` per ottenere un token con grant type password:
 
 ```bash
-curl -X POST "http://localhost:8081/realms/multimedia-realm/protocol/openid-connect/token" \
+curl -X POST "http://keycloak:8080/realms/multimedia-realm/protocol/openid-connect/token" \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "grant_type=password" \
   -d "client_id=gateway-service" \

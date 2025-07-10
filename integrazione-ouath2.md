@@ -1,5 +1,8 @@
 ```text
-[Frontend/User] ---> (login su Keycloak) ---> riceve access_token
+[Container CURL] ---> (login su Keycloak) ---> riceve access_token
+|
+v
+[Insomnia] ---> (Request verso Servizio) ---> riceve 200
 |
 v
 Chiama API:
@@ -12,20 +15,21 @@ v
 [Microservizio Protetto]
 |
 v
-@PreAuthorize("hasRole('user-role')")
+@PreAuthorize("hasRole('USER')")
 ```
 
 ---
 
 ## ✅ Riepilogo dello scenario
 
-1. **Il client (frontend o Postman)** fa login su Keycloak tramite una POST → riceve un `access_token`
-   * `curl -X POST "http://localhost:8081/realms/multimedia-realm/protocol/openid-connect/token" -H "Content-Type: application/x-www-form-urlencoded" -d "grant_type=password" -d "client_id=gateway-service" -d "client_secret=WrvsvM3EJ3seRTHXw1K47O5rgSLOWZrB" -d "username=demo" -d "password=demo"`
-2. Chiama un endpoint del **Gateway** con l'header: `Authorization: Bearer <access_token>`
-3. Il **Gateway**:
+1. Eseguire login con container CURL. → riceve un `access_token`
+   * `curl -X POST "http://keycloak:8080/realms/multimedia-realm/protocol/openid-connect/token" -H "Content-Type: application/x-www-form-urlencoded" -d "grant_type=password" -d "client_id=gateway-service" -d "client_secret=wqh8MSqeERT2DbZLfthyCXC6Ew1iIq2I" -d "username=demo"  -d "password=demo"`
+2. **Il client (frontend o Postman)** fa request verso microservizio con accessToken → riceve un 200
+3. Chiama un endpoint del **Gateway** con l'header: `Authorization: Bearer <access_token>`
+4. Il **Gateway**:
     * (opzionale) **valida il token** → verifica che sia autentico e non scaduto
     * **propaga il token** al microservizio corretto (nell'header `Authorization`)
-4. Il **microservizio**:
+5. Il **microservizio**:
     * **ri-valida il token**
     * legge ruoli e applica logica con `@PreAuthorize(...)` o simili
 
