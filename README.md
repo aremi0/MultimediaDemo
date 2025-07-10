@@ -44,9 +44,9 @@ Questa infrastruttura software è progettata per supportare un ecosistema di mic
 ### 6. Server Keycloak per l'Authentication
 - [Configurazione server Keycloak](./keycloak-readme.md)
 - [Informazioni sul flusso](./integrazione-ouath2.md)
-- Il sistema include un server **Keycloak** runnato in modalità PROD ed esposto alla porta `8081`.[info](integrazione-ouath2.md)
+- Il sistema include un server **Keycloak** runnato in modalità PROD ed esposto alla porta `8081`
 - Si appoggia su un database `postgress` per il salvataggio delle configurazioni
-- È possibile usare un http-client (Insomnia) dall'esterno della subnet per interfacciarsi con l'interno.
+- È possibile usare un http-client (Insomnia) dall'esterno della subnet per interfacciarsi con l'interno
 
 ---
 

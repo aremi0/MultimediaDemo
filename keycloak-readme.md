@@ -104,7 +104,7 @@ Effettua il login con:
 Usa il container `curl` per ottenere un token con grant type password:
 
 ```bash
-curl -X POST "http://keycloak:8080/realms/multimedia-realm/protocol/openid-connect/token" \
+curl -X POST "http://keycloak:8081/realms/multimedia-realm/protocol/openid-connect/token" \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "grant_type=password" \
   -d "client_id=gateway-service" \
