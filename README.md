@@ -10,6 +10,7 @@ Questa infrastruttura software è progettata per supportare un ecosistema di mic
 - **Logging centralizzato** tramite Apache Kafka
 - **Containerizzazione con Docker** per una gestione semplificata
 - **Estendibilità** per aggiungere nuovi servizi Spring in futuro
+- **OAuth2** per la protezione delle risorse (per adesso solamente in http)
 
 ---
 
@@ -25,6 +26,7 @@ Questa infrastruttura software è progettata per supportare un ecosistema di mic
 - Si registra su Eureka e instrada le richieste ai servizi downstream
 - Supporta **Discovery Locator** per generare automaticamente le rotte
 - Porta predefinita: `8080`
+- Configurato come client `confidential` per l'authentication
 
 ### 3. Logging centralizzato con Kafka
 - Il sistema include un **Kafka broker** per raccogliere i log da tutti i servizi
@@ -37,6 +39,14 @@ Questa infrastruttura software è progettata per supportare un ecosistema di mic
 
 ### 5. Servizio Spring "Demo"
 - È presente un servizio Spring "Demo" che presenta un endpoint **GET** `lb://demo-service/api/demo`
+- Configurato come resource server `bearer-only` per l'authorization
+
+### 6. Server Keycloak per l'Authentication
+- [Configurazione server Keycloak](./keycloak-readme.md)
+- [Informazioni sul flusso](./integrazione-ouath2.md)
+- Il sistema include un server **Keycloak** runnato in modalità PROD ed esposto alla porta `8081`.[info](integrazione-ouath2.md)
+- Si appoggia su un database `postgress` per il salvataggio delle configurazioni
+- È possibile usare un http-client (Insomnia) dall'esterno della subnet per interfacciarsi con l'interno.
 
 ---
 
@@ -56,6 +66,7 @@ Spring Cloud Gateway utilizza **Spring Cloud LoadBalancer** per distribuire dina
 
 - **EurekaServer Dashboard**: http://localhost:8761
 - **Kafka UI**: http://localhost:8085
+- **Keycloak**: http://localhost:8081 Serve switchare la ENV `KC_HOSTNAME=keycloak` to `localhost` per poter accedere alla GUI.
 
 ---
 
@@ -72,9 +83,24 @@ info:
   description: API documentation for the Demo Service
   version: 1.0.0
 paths:
-  /api/demo:
+  /api/public/demo:
     get:
-      summary: Get Demo
+      summary: Get a string. No role neither accessToken are necessary to access this resource.
+      description: Returns a demo response
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "This is a demo response"
+  /api/private/user:
+    get:
+      summary: Get a string. AccessToken and Keycloak->role 'USER' are necessary to access this resource.
       description: Returns a demo response
       responses:
         '200':
