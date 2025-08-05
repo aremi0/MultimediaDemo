@@ -1,0 +1,12 @@
+services:
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: frontend
+    ports:
+      - "4200:80"
+
+# docker-compose up
+# oppure in modalità detatched per non bloccare il terminale
+# docker-compose up -d
