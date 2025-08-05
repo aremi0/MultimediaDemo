@@ -112,6 +112,15 @@ services:
   ##########################################################
 
   ############################# Servizi... #############################
+  frontend:
+    build:
+      context: ./frontend
+    container_name: frontend
+    networks:
+      - multimedia
+    ports:
+      - "4200:80"
+
   demoService1:
     image: eclipse-temurin:21-jre # Usa una base con Java 21
     container_name: demo-service-1
