@@ -1,7 +1,7 @@
 import Keycloak  from 'https://cdn.jsdelivr.net/npm/keycloak-js@26.1.4/+esm'
 
 const keycloak = new Keycloak({
-    url: 'http://localhost:8081/',
+    url: 'http://localhost:8888/', // Inserisco l'indirizzo del reverse-proxy di keycloak (porta esposta all'esterno della subnet)
     realm: 'multimedia-realm',
     clientId: 'frontend-client'
 });

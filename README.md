@@ -66,7 +66,10 @@ Spring Cloud Gateway utilizza **Spring Cloud LoadBalancer** per distribuire dina
 
 - **EurekaServer Dashboard**: http://localhost:8761
 - **Kafka UI**: http://localhost:8085
-- **Keycloak**: http://localhost:8081 Serve switchare la ENV `KC_HOSTNAME=keycloak` to `localhost` per poter accedere alla GUI.
+- **Keycloak**: http://localhost:8081 ~~Serve switchare la ENV `KC_HOSTNAME=keycloak` to `localhost` per poter accedere alla GUI.~~
+Non serve più perchè per l'integrazione del Frontend ho dovuto esporre il server keycloak verso l'esterno della subnet
+(alla login il FE viene reindirizzato verso keycloak e se non espongo verso l'esterno allora il browser non risolverebbe http://keycloak/*)
+- **Frontend**: http://localhost:4200
 
 ---
 
