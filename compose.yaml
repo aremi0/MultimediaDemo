@@ -73,13 +73,6 @@ services:
       - keycloak_data:/var/lib/postgresql/data
     networks:
       - multimedia
-
-  curl-client:
-    image: alpine/curl
-    container_name: curl-client
-    command: tail -f /dev/null
-    networks:
-      - multimedia
   ##########################################################
 
   ############################# Load Balancing / ApiGateway #############################
@@ -119,7 +112,7 @@ services:
     networks:
       - multimedia
     ports:
-      - "4200:80"
+      - 4200:80
 
   demoService1:
     image: eclipse-temurin:21-jre # Usa una base con Java 21
