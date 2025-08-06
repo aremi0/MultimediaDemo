@@ -32,7 +32,7 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 });
 
 document.getElementById('callMe').addEventListener('click', () => {
-    fetch("http://gateway:8080/demo-service/api/public/demo", {
+    fetch("http://localhost:8080/demo-service/api/public/demo", {
         headers: {
             Authorization: `Bearer ${keycloak.token}`
         }
