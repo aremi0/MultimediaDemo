@@ -11,6 +11,7 @@ Questa infrastruttura software è progettata per supportare un ecosistema di mic
 - **Containerizzazione con Docker** per una gestione semplificata
 - **Estendibilità** per aggiungere nuovi servizi Spring in futuro
 - **OAuth2** per la protezione delle risorse (per adesso solamente in http)
+- **Frontend** spartano integrato con il sistema di autenticazione e che in update futuri integrerà funzionalità di streaming MP3 e PDF 
 
 ---
 
@@ -44,15 +45,20 @@ Questa infrastruttura software è progettata per supportare un ecosistema di mic
 ### 6. Server Keycloak per l'Authentication
 - [Configurazione server Keycloak](./keycloak-readme.md)
 - [Informazioni sul flusso](./integrazione-ouath2.md)
-- Il sistema include un server **Keycloak** runnato in modalità PROD ed esposto alla porta `8081`
+- Il sistema include un server **Keycloak** runnato in modalità PROD, nascosto dall'esterno della subnet ma esposto internamente alla porta `8081`
 - Si appoggia su un database `postgress` per il salvataggio delle configurazioni
-- È possibile usare un http-client (Insomnia) dall'esterno della subnet per interfacciarsi con l'interno
+- Per interazioni dall'esterno della sottorete è stato posto un server Reverse-Proxy come layer intermediario tra l'esterno ed il server keycloak. Vai [qui](./keycloak-readme.md#8-configurazione-e-creazione-del-frontend-client-con-integrazione-per-reverse-proxy) per informazioni su come interrogarlo
+
+### 7. Interfaccia Frontend spartana per le interazioni con l'architettura
+- Scritto in HTML e Javascript puri per fornire una navigazione più scorrevole rispetto all'uso di un http-client, non il massimo della sicurezza ma trascurabile per i fini formativi del progetto
+- Si interfaccia con il server di Authentication tramite server Reverse-Proxy esposto all'esterno della subnet su `localhost:8888`, che gestisce CORS e forwarding
+- Integrerà nei prossimi aggiornamenti i servizi forniti dai microservizi Spring presenti nell'architettura, tra cui streaming MP3 e PDF
 
 ---
 
 ## ⚖️ Bilanciamento dinamico con Spring Cloud Gateway
 
-Spring Cloud Gateway utilizza **Spring Cloud LoadBalancer** per distribuire dinamicamente le richieste tra le istanze dei servizi registrati su Eureka.
+Spring Cloud Gateway utilizza **Spring Cloud LoadBalancer** per distribuire dinamicamente le richieste tra le istanze dei servizi registrati su Eureka
 
 ### Come funziona:
 - Ogni servizio si registra su Eureka con un `serviceId`
@@ -66,9 +72,7 @@ Spring Cloud Gateway utilizza **Spring Cloud LoadBalancer** per distribuire dina
 
 - **EurekaServer Dashboard**: http://localhost:8761
 - **Kafka UI**: http://localhost:8085
-- **Keycloak**: http://localhost:8081 ~~Serve switchare la ENV `KC_HOSTNAME=keycloak` to `localhost` per poter accedere alla GUI.~~
-Non serve più perchè per l'integrazione del Frontend ho dovuto esporre il server keycloak verso l'esterno della subnet
-(alla login il FE viene reindirizzato verso keycloak e se non espongo verso l'esterno allora il browser non risolverebbe http://keycloak/*)
+- **Keycloak Dashboard**: http://localhost:8888/admin/master/console/ da browser da esterno, attraverso uso del Reverse-Proxy
 - **Frontend**: http://localhost:4200
 
 ---

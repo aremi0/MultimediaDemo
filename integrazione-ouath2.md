@@ -1,3 +1,5 @@
+# <u>Questi scenari NON includono l'aggiornamento che ha introdotto il Reverse-Proxy all'interno della subnet</u>
+
 ```text
 [Insomnia] ---> (login Request verso Keycloak) ---> riceve access_token
 |

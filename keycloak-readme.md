@@ -5,13 +5,18 @@ Questo documento spiega come configurare un server Keycloak, creare un realm, un
 ---
 
 ## 1. Accesso alla console di amministrazione
+<s>
 Switchare la ENV `KC_HOSTNAME=keycloak` per poter accedere alla console dal browser, dopo le modifiche riportare il valore a `keycloak`.  
 
 Apri il browser e vai a:
 
-```
-http://localhost:8081/
-```
+`http://localhost:8081/`
+</s>
+
+**Con l'aggiornamento che ha introdotto il Reverse-Proxy è cambiata la modalità di accesso alla Keycloak Dashboard come segue**
+
+Aprire il browser e recarsi all'url senza modificare nessuna variabile d'ambiente prima dell'avvio del container:
+`http://localhost:8888/admin/master/console/`
 
 Effettua il login con:
 
@@ -123,5 +128,68 @@ Se tutto funziona, otterrai un JSON con access token e refresh token.
 * Limitare le `Valid Redirect URIs` solo ai domini e URL necessari.
 * Proteggere l’accesso al container Keycloak.
 * Integrare i token OAuth2 nell’applicazione (es. gateway, servizi).
+
+---
+
+## 8 Configurazione e creazione del frontend-client con integrazione per reverse-proxy
+
+### Configurazioni iniziali
+1. Modificare il `[command]` per il lancio del container *keycloak* da docker come segue: `command: [ "start", "--hostname", "http://localhost:8888", "--hostname-strict", "false", "--proxy-headers", "xforwarded" ]`  
+Questi parametri abiliteranno il forwarding dell'hostname comunicando al server *keycloak* che si trova dietro un *proxy* (in questo caso esposto all'esterno alla porta `8888`)
+2. Assicurarsi che il server `proxy` abbia un file di configurazione ben configurato per settare l'hostname della richiesta senza sovrascriverlo con il suo hostname interno (vedi il `./nginx/keycloak-reverseProxy.conf`)
+3. Assicurarsi che il server `frontend` rimbalzi le richieste di autenticazioni verso il server `proxy` e che configuri correttamente il client per interagire con `keycloak` (vedi lo `script.js` del frontend)
+
+### Creazione frontend-client da Keycloak Dashboard (browser)
+Accedi alla Dashboard di Keycloak tramite browser su `http://localhost:8888/admin/master/console/`
+
+| Campo                           | Valore                    |
+|---------------------------------|---------------------------|
+| Client ID                       | `frontend-client`         |
+| Access Type                     | `public`                  |
+| Root URL                        | `http://localhost:4200`   |
+| Home URL                        | `http://localhost:4200`   |
+| Valid Redirect URIs             | `http://localhost:4200/*` |
+| Valid Post Logout Redirect URIs | `http://localhost:4200`   |
+| Web Origins                     | `http://localhost:4200`   |
+| PKCE                            | `S256`                    |
+| Standard Flow                   | `enabled`                 |
+| Implicit Flow and others        | `disabled`                |
+
+**Access Type: public** si imposta con le ultime due righe della tabella sopra  
+**PKCE: S256** si imposta dopo aver creato il client, aprendolo e andando dal menu a tab su Advanced e poi scorrendo le voci fino a *Proof Key for Code Exchange Code Challenge Method* e selezionando dalla tendina `S256`
+
+---
+
+### Flusso di esecuzione del Frontend -> Reverse-Proxy - Keycloak
+
+#### 🎯 Obiettivo
+Consentire ad un'applicazione frontend HTML/JavaScript eseguita nel browser della macchina host di autenticarsi tramite
+Keycloak 26.1.4, mantenendo Keycloak **non esposto direttamente** all'esterno della subnet Docker.
+L'accesso avviene tramite un **reverse proxy Nginx**.
+
+---
+
+#### 🔁 Flusso di Autenticazione
+
+1. **Accesso al frontend**: il browser accede a `http://localhost:4200`, che corrisponde al container `frontend` esposto verso l'esterno sulla porta 4200.
+2. **Login**: il frontend usa `keycloak-js` per iniziare il flusso di autenticazione. La richiesta viene inviata a `http://localhost:8888`,
+cioè alla porta esterna del reverse proxy.
+3. **Reverse proxy**: Nginx riceve la richiesta sulla porta 8888 e la inoltra internamente a Keycloak sulla porta interna 8081.
+4. **Keycloak**: genera la pagina di login e la restituisce al browser tramite il proxy con una `redirect` su `http://localhost:8888`
+(per questo devo esporre il `reverse proxy` verso l'esterno, perchè altrimenti né `http://keycloak:8081` né la porta interna del reverse proxy
+sono raggiungibili dall'esterno della subnet e al tempo stesso *OAuth2* funziona proprio in questa maniera, ovvero una redirect verso
+il servizio di Autenticazione che si occuperà egli stesso della sicurezza della comunicazione e dei dati)
+5. **Autenticazione**: l’utente inserisce le credenziali. La richiesta viene inoltrata nuovamente al proxy e poi a Keycloak.
+6. **Redirect**: dopo l’autenticazione, Keycloak redirige il browser verso `http://localhost:4200` con i token/cookie.
+7. **Frontend**: riceve il token e lo visualizza, permettendo l’accesso alle API protette.
+
+---
+
+#### ✅ Motivazioni delle Scelte
+
+- **Reverse proxy**: protegge Keycloak da accessi diretti esterni, migliorando la sicurezza.
+- **Hostname v2**: garantisce redirect corretti e compatibilità con ambienti proxy.
+- **PKCE + Authorization Code Flow**: migliora la sicurezza del flusso di autenticazione.
+- **Configurazione client coerente**: assicura che Keycloak possa redirigere correttamente il browser e accettare richieste CORS.
 
 ---
