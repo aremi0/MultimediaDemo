@@ -173,7 +173,7 @@ L'accesso avviene tramite un **reverse proxy Nginx**.
 
 1. **Accesso al frontend**: il browser accede a `http://localhost:4200`, che corrisponde al container `frontend` esposto verso l'esterno sulla porta `4200`.
 2. **Login**: il frontend usa `keycloak-js` per iniziare il flusso di autenticazione. La richiesta viene inviata a `http://localhost:8888`,
-cioè alla porta esterna del *reverse proxy*`.
+cioè alla porta esterna del *reverse proxy*.
 3. **Reverse proxy**: Nginx riceve la richiesta sulla porta `8888` e la inoltra internamente a Keycloak sulla porta interna `8081`.
 4. **Keycloak**: genera la pagina di login e la restituisce al browser tramite il proxy con una `redirect` su `http://localhost:8888`
 (per questo devo esporre il *reverse proxy* verso l'esterno, perchè altrimenti né `http://keycloak:8081` né la porta interna del *reverse proxy*
