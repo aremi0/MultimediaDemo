@@ -75,6 +75,7 @@ openssl rsa -in certs/key.pem -check -noout       # Verifica la chiave privata
     - Espone la porta `443`
     - Usa certificati autofirmati (`cert.pem`, `key.pem`)
     - Instrada le richieste verso i servizi interni in HTTP
+    - Ingloba il container `keycloak-proxy`
 
 ---
 
@@ -82,12 +83,12 @@ openssl rsa -in certs/key.pem -check -noout       # Verifica la chiave privata
 
 #### Percorsi definiti nel file (https.conf)[./nginx/https.conf]:
 
-| Percorso   | Destinazione interna   | Scopo                                         |
-|------------|------------------------|-----------------------------------------------|
-| `/test/`   | `gatewayService:8080`  | API testabili via Insomnia                    |
-| `/auth/`   | `keycloak:8081`        | Accesso diretto alla admin Dashboard Keycloak |
-| `/api/`    | `gatewayService:8080`  | API usate dal frontend                        |
-| `/`        | `frontend:80`          | Interfaccia utente Angular                    |
+| Percorso      | Destinazione interna   | Scopo                                         |
+|---------------|------------------------|-----------------------------------------------|
+| `/api/`       | `gateway-service:8080` | API usate dal frontend                        |
+| `/multimedia` | `frontend:80`          | Interfaccia utente HTML/Javascript            |
+| `/`           | `keycloak:8081`        | Accesso diretto alla admin Dashboard Keycloak |
+
 
 ### Note:
 - Il `gatewayService` non espone più la porta 8080 all’esterno → diventa un **servizio interno**.
@@ -99,15 +100,12 @@ openssl rsa -in certs/key.pem -check -noout       # Verifica la chiave privata
 
 ### 🧠 Chiarimenti architetturali
 
-#### 🔹 Location `/auth/`
+#### 🔹 Location `/`
 - Inizialmente il browser contattava `keycloak-proxy` su porta 8888.
 - Ora Nginx può contattare direttamente `keycloak:8081`, eliminando un livello di proxy.
+- Non è possibile usare una location `/auth/` perchè porterebbe incompatibilità in quanto keycloak usa come root `/`.
 
-#### 🔹 Location `/api/` e `/test/`
-- `/api/` è usato dal frontend per accedere alle API.
-- `/test/` è utile per test manuali via Insomnia, separando il traffico di sviluppo.
-
-#### 🔹 Location `/`
+#### 🔹 Location `/multimedia/`
 - Serve i file statici del frontend.
 - Le chiamate API del frontend possono essere su percorsi come `/dashboard/api/...`, che Nginx gestisce correttamente.
 
@@ -118,7 +116,6 @@ openssl rsa -in certs/key.pem -check -noout       # Verifica la chiave privata
 ---
 
 ## 🔜 Prossimi step
-- Testare il flusso HTTPS da browser e client HTTP
 - Verificare il corretto instradamento dei path `/api/`, `/test/`, `/auth/`
 - Eventuale aggiunta di:
     - Logging delle richieste
