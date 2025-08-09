@@ -85,6 +85,8 @@ services:
     read_only: true
     tmpfs:
       - /tmp
+      - /var/cache/nginx:rw,size=20m # Mantiene in ram la cache, con un tetto massimo di 20mb
+      - /var/run:rw,size=1m
     ports:
       - 443:443
     depends_on:
@@ -94,16 +96,19 @@ services:
     networks:
       - multimedia
 
-  fluentd:
+  log-forwarder:
     build:
-      context: ./nginx
-      dockerfile: fluentd.dockerfile
-    container_name: fluentd
+      context: ./nginx/log-forwarder
+      dockerfile: python-forwarder.dockerfile
+    container_name: log-forwarder
+    command: [ "python", "app.py"]
+    environment:
+      HEARTBEAT_INTERVAL: 30
+      GRPC_TARGET: spring-kafka-producer:6565
+      LOG_PATH: /var/log/nginx/access_real.log
     volumes:
-      - ./nginx/fluent.conf:/fluentd/etc/fluent.conf:ro
-      - ./gRPC:/fluentd/protos:ro
-      - nginx-logs:/var/log/nginx:ro
-      - fluentd-buffer:/fluentd/logs
+      - ./nginx/log-forwarder/log-forwarder.py:/app/app.py:ro
+      - nginx-logs:/var/log/nginx
     depends_on:
       - nginx-https
       - spring-kafka-producer
@@ -150,6 +155,8 @@ services:
       - multimedia
     expose:
       - 80
+    depends_on:
+      - keycloak
 
   spring-kafka-producer:
     image: ${JAVA_VERSION}
@@ -195,7 +202,6 @@ services:
 volumes:
   keycloak_data:
   nginx-logs:
-  fluentd-buffer:
 
 networks:
   multimedia:
