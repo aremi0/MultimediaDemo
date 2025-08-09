@@ -82,7 +82,7 @@ openssl rsa -in certs/key.pem -check -noout       # Verifica la chiave privata
 ### 🔧 Configurazione Nginx
 
 #### Location definite:
-Consulta il file di [configurazione](./nginx/https.conf)
+Consulta il file di [configurazione](../nginx/https.conf)
 
 | Percorso      | Destinazione interna   | Scopo                                         |
 |---------------|------------------------|-----------------------------------------------|
