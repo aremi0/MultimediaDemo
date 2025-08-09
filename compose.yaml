@@ -151,6 +151,21 @@ services:
     expose:
       - 80
 
+  spring-kafka-producer:
+    image: ${JAVA_VERSION}
+    container_name: spring-kafka-producer
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_TOPIC: nginx.logs
+    volumes:
+      - ./KafkaProducerService/target/KafkaProducerService-0.0.1-SNAPSHOT.jar:/app.jar:ro
+    working_dir: /app
+    command: ["java", "-jar", "/app.jar"]
+    networks:
+      - multimedia
+    depends_on:
+      - kafka
+
   demoService1:
     image: ${JAVA_VERSION}
     container_name: demo-service-1
