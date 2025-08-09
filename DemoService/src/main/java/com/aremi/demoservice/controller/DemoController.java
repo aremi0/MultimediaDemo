@@ -21,7 +21,7 @@ import java.util.Map;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/v2")
 public class DemoController {
 
     private final KafkaProducer kafkaProducer;
