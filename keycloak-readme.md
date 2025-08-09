@@ -16,7 +16,7 @@ Apri il browser e vai a:
 **Con l'aggiornamento che ha introdotto il Reverse-Proxy è cambiata la modalità di accesso alla Keycloak Dashboard come segue**
 
 Aprire il browser e recarsi all'url senza modificare nessuna variabile d'ambiente prima dell'avvio del container:
-`http://localhost:8888/admin/master/console/`
+`https://localhost/`
 
 Effettua il login con:
 
@@ -144,18 +144,18 @@ Questi parametri abiliteranno il forwarding dell'hostnameV2 comunicando al serve
 ### Creazione frontend-client da Keycloak Dashboard (browser)
 Accedi alla Dashboard di Keycloak tramite browser su `http://localhost:8888/admin/master/console/`
 
-| Campo                           | Valore                    |
-|---------------------------------|---------------------------|
-| Client ID                       | `frontend-client`         |
-| Access Type                     | `public`                  |
-| Root URL                        | `http://localhost:4200`   |
-| Home URL                        | `http://localhost:4200`   |
-| Valid Redirect URIs             | `http://localhost:4200/*` |
-| Valid Post Logout Redirect URIs | `http://localhost:4200`   |
-| Web Origins                     | `http://localhost:4200`   |
-| PKCE                            | `S256`                    |
-| Standard Flow                   | `enabled`                 |
-| Implicit Flow and others        | `disabled`                |
+| Campo                           | Valore                |
+|---------------------------------|-----------------------|
+| Client ID                       | `frontend-client`     |
+| Access Type                     | `public`              |
+| Root URL                        | `https://localhost`   |
+| Home URL                        | `https://localhost`   |
+| Valid Redirect URIs             | `https://localhost/*` |
+| Valid Post Logout Redirect URIs | `https://localhost`   |
+| Web Origins                     | `https://localhost`   |
+| PKCE                            | `S256`                |
+| Standard Flow                   | `enabled`             |
+| Implicit Flow and others        | `disabled`            |
 
 - **Access Type: public** => si imposta con le ultime due righe della tabella sopra  
 - **PKCE: S256** => si imposta dopo aver creato il client, aprendolo e andando dal menu a tab su Advanced e poi scorrendo le voci fino a *Proof Key for Code Exchange Code Challenge Method* e selezionando dalla tendina `S256`
@@ -171,7 +171,7 @@ L'accesso avviene tramite un **reverse proxy Nginx**.
 
 #### 🔁 Flusso di Autenticazione
 
-1. **Accesso al frontend**: il browser accede a `http://localhost:4200`, che corrisponde al container `frontend` esposto verso l'esterno sulla porta `4200`.
+1. **Accesso al frontend**: il browser accede a `https://localhost/multimedia`, che corrisponde al container `frontend` esposto verso l'esterno sulla porta `4200`.
 2. **Login**: il frontend usa `keycloak-js` per iniziare il flusso di autenticazione. La richiesta viene inviata a `http://localhost:8888`,
 cioè alla porta esterna del *reverse proxy*.
 3. **Reverse proxy**: Nginx riceve la richiesta sulla porta `8888` e la inoltra internamente a Keycloak sulla porta interna `8081`.
