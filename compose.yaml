@@ -126,7 +126,6 @@ services:
     container_name: frontend
     volumes:
       - ./frontend/src:/usr/share/nginx/html:ro
-    #command: []
     networks:
       - multimedia
     expose:
