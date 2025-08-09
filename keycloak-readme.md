@@ -136,7 +136,7 @@ Se tutto funziona, otterrai un JSON con access token e refresh token.
 ### Configurazioni iniziali
 1. Modificare il `[command]` per il lancio del container *keycloak* da docker come segue: `command: [ "start", "--hostname", "http://localhost:8888", "--hostname-strict", "false", "--proxy-headers", "xforwarded" ]`  
 Questi parametri abiliteranno il forwarding dell'hostnameV2 comunicando al server *keycloak* che si trova dietro un *proxy* (in questo caso esposto all'esterno alla porta `8888`)
-2. Assicurarsi che il server `proxy` abbia un file di configurazione ben configurato per settare l'hostname della richiesta senza sovrascriverlo con il suo hostname interno (vedi [qui](/nginx/keycloak-reverseProxy.conf))
+2. Assicurarsi che il server `proxy` abbia un file di configurazione ben configurato per settare l'hostname della richiesta senza sovrascriverlo con il suo hostname interno (vedi location `/` [qui](/nginx/https.conf))
 3. Assicurarsi che il server `frontend` rimbalzi le richieste di autenticazione verso il server `proxy` e che configuri correttamente il client per interagire con `keycloak` (vedi [qui](/frontend/src/script.js))
 
 ---
