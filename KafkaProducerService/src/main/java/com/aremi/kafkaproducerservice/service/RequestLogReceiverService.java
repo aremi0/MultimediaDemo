@@ -25,7 +25,7 @@ public class RequestLogReceiverService extends requestlog.RequestLogReceiverGrpc
     public void sendLog(RequestLogOuterClass.RequestLog request, StreamObserver<RequestLogOuterClass.Ack> responseObserver) {
         try {
             // Chiave = IP client (o altro campo utile al partitioning)
-            var key = StringUtils.hasText(request.getRemoteAddr()) ? request.getRemoteAddr() : "null";
+            var key = StringUtils.hasText(request.getRemoteAddr()) ? request.getRemoteAddr() : "unknown";
 
             // Serializziamo in JSON per semplicità di consumo lato Kafka
             var requestLogPojo = toPojo(request);
@@ -39,11 +39,17 @@ public class RequestLogReceiverService extends requestlog.RequestLogReceiverGrpc
 
             kafkaTemplate.send(topic, key, json);
 
-            RequestLogOuterClass.Ack ack = RequestLogOuterClass.Ack.newBuilder().setMessage("OK").build();
+            RequestLogOuterClass.Ack ack = RequestLogOuterClass.Ack.newBuilder()
+                    .setStatus(1)
+                    .setMessage("OK")
+                    .build();
             responseObserver.onNext(ack);
             responseObserver.onCompleted();
         } catch (Exception ex) {
-            RequestLogOuterClass.Ack ack = RequestLogOuterClass.Ack.newBuilder().setMessage("ERROR: " + ex.getLocalizedMessage()).build();
+            RequestLogOuterClass.Ack ack = RequestLogOuterClass.Ack.newBuilder()
+                    .setStatus(0)
+                    .setMessage("ERROR: " + ex.getLocalizedMessage())
+                    .build();
             responseObserver.onNext(ack);
             responseObserver.onCompleted();
         }

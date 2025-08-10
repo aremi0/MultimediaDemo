@@ -77,7 +77,8 @@ class LogHandler(FileSystemEventHandler):
                     )
                     ack = self.stub.SendLog(log_msg)
                     self.logs_sent += 1
-                    logging.debug(f"✅ Sent log: {log_msg.time} → Ack: {ack.message}")
+                    if ack.status == 0 :
+                        logging.error(f"❌ Log non accettato: {log_msg.time} → Ack: {ack.message}")
                 except Exception as e:
                     logging.warning(f"⚠️ Error parsing/sending log: {e}")
 

@@ -19,5 +19,6 @@ service RequestLogReceiver {
 
 // Risposta di conferma
 message Ack {
-  string message = 1;
+  int32 status = 1; // 1 = successo, 0 = errore
+  string message = 2;
 }
