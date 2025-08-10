@@ -1,7 +1,9 @@
+// FILE di TEMPLATE => serve uno script *.sh per sostituire le variabili d'ambiente
+
 import Keycloak  from 'https://cdn.jsdelivr.net/npm/keycloak-js@26.1.4/+esm'
 
 const keycloak = new Keycloak({
-    url: 'https://multimedia-entrypoint/', // Inserisco l'indirizzo del nuovo https-reverse-proxy al path che mi indirizza verso keycloak '/auth/'
+    url: 'https://${DOMAIN_NAME}/', // Inserisco l'indirizzo del nuovo https-reverse-proxy al path che mi indirizza verso keycloak '/auth/'
     realm: 'multimedia-realm',
     clientId: 'frontend-client'
 });
@@ -34,7 +36,7 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 // Instrado verso il reverse-proxy al path che mi indirizza verso il gateway-service '/api/'
 // 🔓 Chiamata pubblica senza token
 document.getElementById('callPublic').addEventListener('click', () => {
-    fetch("https://multimedia-entrypoint/api/demo-service/v2/public/demo")
+    fetch("https://${DOMAIN_NAME}/api/demo-service/v2/public/demo")
         .then(res => res.json())
         .then(data => {
             document.getElementById('responsePublic').innerText = JSON.stringify(data, null, 2);
@@ -44,7 +46,7 @@ document.getElementById('callPublic').addEventListener('click', () => {
 // Instrado verso il reverse-proxy al path che mi indirizza verso il gateway-service '/api/'
 // 🔐 Chiamata protetta con token
 document.getElementById('callPrivate').addEventListener('click', () => {
-    fetch("https://multimedia-entrypoint/api/demo-service/v2/private/user", {
+    fetch("https://${DOMAIN_NAME}/api/demo-service/v2/private/user", {
         headers: {
             Authorization: `Bearer ${keycloak.token}`
         }

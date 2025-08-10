@@ -4,6 +4,7 @@
 
 Questa infrastruttura software è progettata per supportare un ecosistema di microservizi distribuiti basati su **Spring Boot**. Include:
 
+- **Dominio** configurabile con singola modifica, leggi [qui](./domain-name-parametrico.md)
 - **Service Discovery** tramite Eureka Server
 - **SSL/HTTPS** tramite un Reverse-Proxy posto come unico punto di ingresso alla subnet, per una gestione centralizzata di HTTPS
 - **API Gateway** per l'instradamento centralizzato delle richieste, posto dopo il Reverse-Proxy e non esposto verso l'esterno
