@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package requestlog;
+
+message RequestLog {
+  string time = 1;                    // Timestamp ISO8601
+  string remote_addr = 2;             // IP del client
+  string request = 3;                 // Metodo + URI + protocollo
+  string status = 4;                  // Codice HTTP
+  string request_time = 5;            // Tempo totale della richiesta
+  string service = 6;                 // Nome servizio della subnet
+  string kafka_topic = 7;             // Topic su cui scrivere
+}
+
+// Servizio gRPC che riceve i log
+service RequestLogReceiver {
+  rpc SendLog (RequestLog) returns (Ack);
+}
+
+// Risposta di conferma
+message Ack {
+  int32 status = 1; // 1 = successo, 0 = errore
+  string message = 2;
+}

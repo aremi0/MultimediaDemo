@@ -1,4 +1,4 @@
-Microservizio che funge da punto di ingresso per l'infrastruttura, bilanciando il carico verso i server registrati in
+Microservizio che smista il traffico ai servizi specifici, bilanciando il carico verso i server registrati in
 EurekaServer e gestendo automaticamente il routing in maniera dinamica.  
 
 - È basato su Spring Cloud Gateway.
