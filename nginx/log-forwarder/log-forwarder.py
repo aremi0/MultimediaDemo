@@ -6,9 +6,10 @@ import logging
 import re
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-from nginx_log_pb2 import NginxLog
-from nginx_log_pb2_grpc import NginxLogReceiverStub
+from request_log_pb2 import RequestLog
+from request_log_pb2_grpc import RequestLogReceiverStub
 
+REQUEST_KAFKA_TOPIC = os.getenv("REQUEST_KAFKA_TOPIC", "log.request.nginx-entrypoint")
 LOG_PATH = os.getenv("LOG_PATH", "/var/log/nginx/access_real.log")
 GRPC_TARGET = os.getenv("GRPC_TARGET", "spring-kafka-producer:6565")
 HEARTBEAT_INTERVAL = int(os.getenv("HEARTBEAT_INTERVAL", "60"))  # default: 60 sec
@@ -65,14 +66,14 @@ class LogHandler(FileSystemEventHandler):
                         logging.debug(f"⏭️ Log ignorato: {log_json.get('request', '')}")
                         continue
 
-                    log_msg = NginxLog(
+                    log_msg = RequestLog(
                         time=log_json.get("time", ""),
                         remote_addr=log_json.get("remote_addr", ""),
                         request=log_json.get("request", ""),
                         status=log_json.get("status", ""),
-                        http_user_agent=log_json.get("http_user_agent", ""),
                         request_time=log_json.get("request_time", ""),
-                        upstream_response_time=log_json.get("upstream_response_time", "")
+                        service="nginx-entrypoint",
+                        kafka_topic=REQUEST_KAFKA_TOPIC
                     )
                     ack = self.stub.SendLog(log_msg)
                     self.logs_sent += 1
@@ -85,7 +86,7 @@ class LogHandler(FileSystemEventHandler):
 
 def main():
     channel = grpc.insecure_channel(GRPC_TARGET)
-    stub = NginxLogReceiverStub(channel)
+    stub = RequestLogReceiverStub(channel)
 
     event_handler = LogHandler(stub)
     observer = Observer()

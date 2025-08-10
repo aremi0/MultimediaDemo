@@ -106,6 +106,7 @@ services:
       HEARTBEAT_INTERVAL: 30
       GRPC_TARGET: spring-kafka-producer:6565
       LOG_PATH: /var/log/nginx/access_real.log
+      REQUEST_KAFKA_TOPIC: log.request.nginx-entrypoint
     volumes:
       - ./nginx/log-forwarder/log-forwarder.py:/app/app.py:ro
       - nginx-logs:/var/log/nginx
@@ -163,7 +164,7 @@ services:
     container_name: spring-kafka-producer
     environment:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      KAFKA_TOPIC: nginx.logs
+      DEFAULT_REQUEST_KAFKA_TOPIC: log.request.default
     volumes:
       - ./KafkaProducerService/target/KafkaProducerService-0.0.1-SNAPSHOT.jar:/app.jar:ro
     working_dir: /app
