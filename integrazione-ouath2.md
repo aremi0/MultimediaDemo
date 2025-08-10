@@ -1,39 +1,35 @@
-# <u>Questi scenari NON includono l'aggiornamento che ha introdotto il Reverse-Proxy all'interno della subnet</u>
+## Esempio di flusso per API protetta e role-based
 
 ```text
-[Insomnia] ---> (login Request verso Keycloak) ---> riceve access_token
+[NGINX]    ---> Rivece request su https://multimedia-entrypoint/multimedia ---> Rimbalza verso il Frontend
 |
 v
-[Insomnia] ---> (Request verso servizio Spring) ---> riceve 200
+[Frontend] ---> Pressione pulsante LOGIN ---> Rimbalza verso il NGINX
 |
 v
-Chiama API:
-[Authorization: Bearer token]
+[NGINX]    ---> Riceve request su https://multimedia-entrypoint/realms/multimedia-realms ---> Rimbalza verso Keycloak ---> Redirect del Frontend su Keycloak
 |
 v
-[ApiGateway]
+[Keycloak] ---> Esegui la login ---> Successo! ---> Redirect di nuovo verso il Frontend con il token/cookie
 |
 v
-[Microservizio Protetto]
+[Frontend] ---> Autenticato! ---> Preme pulsante per API Privata ---> Rimbalza verso NGINX
 |
 v
-@PreAuthorize("hasRole('USER')")
+[NGINX]    ---> Rivece request su https://multimedia-entrypoint/api/service-name ---> Rimbalza verso il Api-Gateway 
+|
+v
+[ApiGateway] ---> Authorization: Bearer token ---> Routing con EurekaServer verso Service-Name
+|
+v
+[Servizio Spring] ---> Check sulla validità del token
+|
+v
+@PreAuthorize("hasRole('USER')") ---> Autorizzato!
+|
+v
+[Response] ---> Risposta ritorna al Frontend
 ```
-
----
-
-## ✅ Riepilogo dello scenario
-
-1. Eseguire login con Insomnia o CURL. → riceve un `access_token`
-   * `curl -X POST "http://keycloak:8081/realms/multimedia-realm/protocol/openid-connect/token" -H "Content-Type: application/x-www-form-urlencoded" -d "grant_type=password" -d "client_id=gateway-service" -d "client_secret=wqh8MSqeERT2DbZLfthyCXC6Ew1iIq2I" -d "username=demo"  -d "password=demo"`
-2. **Il client (frontend o Postman)** fa request verso microservizio con accessToken → riceve un 200
-3. Chiama un endpoint del **Gateway** con l'header: `Authorization: Bearer <access_token>`
-4. Il **Gateway**:
-    * (opzionale) **valida il token** → verifica che sia autentico e non scaduto
-    * **propaga il token** al microservizio corretto (nell'header `Authorization`)
-5. Il **microservizio**:
-    * **ri-valida il token**
-    * legge ruoli e applica logica con `@PreAuthorize(...)` o simili
 
 ---
 
@@ -48,13 +44,11 @@ Quando diciamo che **il Gateway o i servizi "validano" il token**, intendiamo:
 Spring fa questo in automatico se configuri:
 
 ```properties
-spring.security.oauth2.resourceserver.jwt.issuer-uri=http://keycloak:8081/realms/multimedia-realm
+spring.security.oauth2.resourceserver.jwt.issuer-uri=https://multimedia-entrypoint/realms/multimedia-realm
 ```
 
 ⚠️ **Importante**:
-Anche se *entrambi* (Gateway e servizi) validano il token, è corretto: si tratta di **Resource Server indipendenti**. L’API Gateway può validare **prima**, per bloccare subito richieste invalide.
-
----
+Anche se *entrambi* (Gateway e servizi) dovessero validano il token, è corretto: si tratta di **Resource Server indipendenti**. L’API Gateway può validare **prima**, per bloccare subito richieste invalide.
 
 ---
 
