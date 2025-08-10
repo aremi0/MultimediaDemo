@@ -25,23 +25,24 @@ import java.util.Map;
 public class DemoController {
 
     @GetMapping("/public/demo")
-    public ResponseEntity<String> demo(HttpServletRequest request) {
+    public ResponseEntity<Map<String, String>> demo(HttpServletRequest request) {
         log.info("Richiesta arrivata");
-        return ResponseEntity.ok("Questo è un endpoint pubblico.");
+        Map<String, String> response = Map.of("message", "Questo è un endpoint pubblico.");
+        return ResponseEntity.ok(response);
     }
 
     // Endpoint protetto, accessibile solo ad utenti autenticati con ruolo USER_ROLE
     @PreAuthorize("hasRole(T(com.aremi.demoservice.security.Roles).USER)")
     @GetMapping("/private/user")
-    public ResponseEntity<String> user(HttpServletRequest request,
-                                       @RequestHeader Map<String, String> headers,
-                                       @AuthenticationPrincipal Jwt jwt,
-                                       Authentication authentication) {
+    public ResponseEntity<Map<String, String>> user(HttpServletRequest request,
+                                                    @RequestHeader Map<String, String> headers,
+                                                    @AuthenticationPrincipal Jwt jwt,
+                                                    Authentication authentication) {
         headers.forEach((key, value) -> log.info("Header {}: {}", key, value));
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         authorities.forEach(auth -> log.info("Authority: {}", auth.getAuthority()));
         log.info("Richiesta arrivata: subject:{}, roles:{}", jwt.getSubject(), jwt.getClaim("realm_access"));
-        //kafkaProducer.sendLog("demoController", "GET /private/user");
-        return ResponseEntity.ok("Accesso consentito all'utente con ruolo user-role.");
+        Map<String, String> response = Map.of("message", "Accesso consentito all'utente con ruolo user-role.");
+        return ResponseEntity.ok(response);
     }
 }

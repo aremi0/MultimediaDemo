@@ -31,15 +31,27 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
     keycloak.logout();
 });
 
-document.getElementById('callMe').addEventListener('click', () => {
-    fetch("https://multimedia-entrypoint/api/demo-service/v2/public/demo", { // Instrado verso l'https-reverse-proxy al path che mi indirizza verso il gateway-service '/api/'
+// Instrado verso il reverse-proxy al path che mi indirizza verso il gateway-service '/api/'
+// 🔓 Chiamata pubblica senza token
+document.getElementById('callPublic').addEventListener('click', () => {
+    fetch("https://multimedia-entrypoint/api/demo-service/v2/public/demo")
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('responsePublic').innerText = JSON.stringify(data, null, 2);
+        });
+});
+
+// Instrado verso il reverse-proxy al path che mi indirizza verso il gateway-service '/api/'
+// 🔐 Chiamata protetta con token
+document.getElementById('callPrivate').addEventListener('click', () => {
+    fetch("https://multimedia-entrypoint/api/demo-service/v2/private/user", {
         headers: {
             Authorization: `Bearer ${keycloak.token}`
         }
     })
         .then(res => res.json())
         .then(data => {
-            document.getElementById('response').innerText = JSON.stringify(data, null, 2);
+            document.getElementById('responsePrivate').innerText = JSON.stringify(data, null, 2);
         });
 });
 

@@ -9,14 +9,19 @@
 <body>
     <h1>Simple HTML Frontend</h1>
     <button id="loginBtn">Login</button>
+
+    <h2>Chiamata a /public/demo</h2>
+    <button id="callPublic">Chiama API pubblica</button>
+    <pre id="responsePublic"></pre>
+
     <button id="logoutBtn" style="display:none;">Logout</button>
 
     <div id="content" style="display:none;">
         <h2>Token</h2>
         <pre id="token"></pre>
-        <h2>Chiamata a /demo/me</h2>
-        <button id="callMe">Chiama API</button>
-        <pre id="response"></pre>
+        <h2>Chiamata a /private/user</h2>
+        <button id="callPrivate">Chiama API protetta</button>
+        <pre id="responsePrivate"></pre>
     </div>
 
 </body>
