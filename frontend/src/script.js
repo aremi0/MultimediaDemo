@@ -1,7 +1,7 @@
 import Keycloak  from 'https://cdn.jsdelivr.net/npm/keycloak-js@26.1.4/+esm'
 
 const keycloak = new Keycloak({
-    url: 'https://localhost/', // Inserisco l'indirizzo del nuovo https-reverse-proxy al path che mi indirizza verso keycloak '/auth/'
+    url: 'https://multimedia-entrypoint/', // Inserisco l'indirizzo del nuovo https-reverse-proxy al path che mi indirizza verso keycloak '/auth/'
     realm: 'multimedia-realm',
     clientId: 'frontend-client'
 });
@@ -32,7 +32,7 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 });
 
 document.getElementById('callMe').addEventListener('click', () => {
-    fetch("https://localhost/api/demo-service/v2/public/demo", { // Instrado verso l'https-reverse-proxy al path che mi indirizza verso il gateway-service '/api/'
+    fetch("https://multimedia-entrypoint/api/demo-service/v2/public/demo", { // Instrado verso l'https-reverse-proxy al path che mi indirizza verso il gateway-service '/api/'
         headers: {
             Authorization: `Bearer ${keycloak.token}`
         }

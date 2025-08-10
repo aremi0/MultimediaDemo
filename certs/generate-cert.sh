@@ -1,9 +1,7 @@
 #!/bin/bash
 
-# Create certs directory if it doesn't exist
 mkdir -p certs
 
-# Temporary OpenSSL config file with SAN
 cat > certs/openssl.cnf <<EOF
 [req]
 default_bits       = 4096
@@ -13,7 +11,7 @@ x509_extensions    = v3_ca
 prompt             = no
 
 [req_distinguished_name]
-CN = localhost
+CN = multimedia-entrypoint
 
 [req_ext]
 subjectAltName = @alt_names
@@ -22,10 +20,11 @@ subjectAltName = @alt_names
 subjectAltName = @alt_names
 
 [alt_names]
-DNS.1 = localhost
+DNS.1 = multimedia-entrypoint
+DNS.2 = localhost
 EOF
 
-# Generate the certificate and key
+# Genera certificato e chiave
 openssl req -x509 -nodes -days 365 \
   -newkey rsa:4096 \
   -keyout certs/key.pem \
@@ -33,7 +32,13 @@ openssl req -x509 -nodes -days 365 \
   -config certs/openssl.cnf \
   -extensions req_ext
 
-# Clean up config file
+# Converte il certificato in formato .crt (compatibile con keytool)
+openssl x509 -in certs/cert.pem -out certs/multimedia-entrypoint.crt
+
+# Pulisce il file di configurazione temporaneo
 rm certs/openssl.cnf
 
-echo "✅ Certificato autofirmato generato in ./certs/cert.pem e ./certs/key.pem"
+echo "✅ Certificato autofirmato generato:"
+echo "   - PEM: certs/cert.pem"
+echo "   - CRT: certs/multimedia-entrypoint.crt"
+echo "   - Chiave: certs/key.pem"
