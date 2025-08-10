@@ -7,11 +7,11 @@ Questa infrastruttura software è progettata per supportare un ecosistema di mic
 - **Service Discovery** tramite Eureka Server
 - **SSL/HTTPS** tramite un Reverse-Proxy posto come unico punto di ingresso alla subnet, per una gestione centralizzata di HTTPS
 - **API Gateway** per l'instradamento centralizzato delle richieste, posto dopo il Reverse-Proxy e non esposto verso l'esterno
-- **Bilanciamento dinamico del carico** tramite Spring Cloud Gateway ===> DEPRECATA, da sostituire in update futuri
-- **Logging centralizzato** tramite Apache Kafka
+- **Bilanciamento dinamico del carico** tramite Spring Cloud Gateway Webflux
+- **Logging centralizzato** tramite Apache Kafka tramite servizio SpringKafkaProducer
 - **Containerizzazione con Docker** per una gestione semplificata
 - **Estendibilità** per aggiungere nuovi servizi Spring in futuro
-- **OAuth2** per la protezione delle risorse (~~per adesso solamente in http~~ integrazione https in sviluppo)
+- **OAuth2** per la protezione delle risorse 
 - **Frontend** spartano, integrato con il sistema di autenticazione e che in update futuri integrerà funzionalità di streaming MP3 e PDF 
 
 ---
@@ -24,20 +24,23 @@ Questa infrastruttura software è progettata per supportare un ecosistema di mic
 - Porta predefinita: `8761`
 
 ### 2. Reverse-Proxy HTTPS
-- Unico punto di ingresso alla subnet e all'infrastruttura
+- Unico punto di ingresso alla subnet e all'infrastruttura, espone su `https://multimedia-entrypoint/`
 - Centralizza la cifratura SSL dall'esterno, permettendo quindi una comunicazione intranet semplificata in HTTP
 - Permette di applicare agevolmente filtri, controlli di sicurezza e limitazioni del traffico in entrata (DA INTEGRARE)
+- Log-Forwarder in Python e verso SpringKafkaProducer per monitorare tutte le richieste in entrata
 - Più informazioni [qui](./certs/https-readme.md)
 
+<big>**ATTENZIONE**</big>, per far funziona tutta l'infrastruttura bisogna modificare il file host della macchina inserendo un nuovo DNS, [guida](./certs/https-readme.md#-guida-alla-modifica-del-file-hosts)
+
 ### 2. API Gateway
-- Basato su **Spring Cloud Gateway (WebFlux)** ===> DEPRECATO da poco, da sistemare
+- Basato su **Spring Cloud Gateway WebFlux**
 - Si registra su Eureka e instrada le richieste ai servizi downstream
 - Supporta **Discovery Locator** per generare automaticamente le rotte
 - Configurato come client `confidential` per l'authentication
 
 ### 3. Logging centralizzato con Kafka
 - Il sistema include un **Kafka Producer Service** che si occuperà di interagire con il `Kafka Broker`, tutti i servizi che vogliono scrivere un messaggio si interfacciano con esso ===> DA IMPLEMENTARE
-- Ogni servizio/microservizio può pubblicare i propri log su un topic dedicato (es. `user-service-log`, `order-service-log`) attraverso il **Kafka Producer Service**
+- Ogni servizio/microservizio può pubblicare i propri log su un topic dedicato (es. `log.request.service-name`) attraverso il **Kafka Producer Service**
 - I log possono essere successivamente consumati da un'applicazione di monitoraggio o da un sistema di persistenza
 - Le informazioni di Kafka sono visualizzabili tramite **Kafka UI** (browser) alla porta `8085`.
 
