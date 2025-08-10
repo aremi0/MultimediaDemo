@@ -30,7 +30,7 @@ Questa configurazione garantisce che ogni componente sia automaticamente aggiorn
 
 ### 🛡️ 3.1 - Misure di sicurezza nei container NGINX
 
-Per garantire la robustezza dell’architettura, sono state adottate le seguenti misure comuni:
+Per garantire la robustezza dell’architettura, sono state adottate le seguenti misure:
 
 - **Filesystem in sola lettura** con `read_only: true`, impedendo scritture sul filesystem base
 - **Montaggi selettivi e protetti** i file critici sono montati in modalità `:ro` (es. gli script `entrypoint.sh`)
