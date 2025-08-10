@@ -21,7 +21,7 @@ public class SecurityConfig {
 
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/demo-service/v2/public/**").permitAll() // rotte pubbliche
+                        .requestMatchers("/v2/public/**").permitAll() // rotte pubbliche
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
