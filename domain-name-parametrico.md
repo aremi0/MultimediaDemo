@@ -28,7 +28,7 @@ Questa configurazione garantisce che ogni componente sia automaticamente aggiorn
 
 ## 🔐 Capitolo 3 – Sicurezza
 
-### 🛡️ 3.1 - Misure nei container NGINX
+### 🛡️ 3.1 - Misure di sicurezza nei container NGINX
 
 Per garantire la robustezza dell’architettura, sono state adottate le seguenti misure comuni:
 
