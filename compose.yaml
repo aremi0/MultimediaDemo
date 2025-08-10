@@ -189,7 +189,7 @@ services:
     command: [
       "java",
       "-Djavax.net.ssl.trustStore=/app/keystore.p12",
-      "-Djavax.net.ssl.trustStorePassword=admin",
+      "-Djavax.net.ssl.trustStorePassword=${TRUSTSTORE_PASSWORD}",
       "-Djavax.net.ssl.trustStoreType=PKCS12",
       "-jar",
       "/app/service.jar"
@@ -198,6 +198,7 @@ services:
       KAFKA_PRODUCER_HOSTNAME: spring-kafka-producer
       KAFKA_PRODUCER_PORT: 6565
       REQUEST_KAFKA_TOPIC: log.request.demo-service
+      TRUSTSTORE_PASSWORD: ${TRUSTSTORE_PASSWORD}
     networks:
       - multimedia
     depends_on:
@@ -216,7 +217,7 @@ services:
     command: [
       "java",
       "-Djavax.net.ssl.trustStore=/app/keystore.p12",
-      "-Djavax.net.ssl.trustStorePassword=admin",
+      "-Djavax.net.ssl.trustStorePassword=${TRUSTSTORE_PASSWORD}",
       "-Djavax.net.ssl.trustStoreType=PKCS12",
       "-jar",
       "/app/service.jar"
@@ -225,6 +226,7 @@ services:
       KAFKA_PRODUCER_HOSTNAME: spring-kafka-producer
       KAFKA_PRODUCER_PORT: 6565
       REQUEST_KAFKA_TOPIC: log.request.demo-service
+      TRUSTSTORE_PASSWORD: ${TRUSTSTORE_PASSWORD}
     networks:
       - multimedia
     depends_on:
