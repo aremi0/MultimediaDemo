@@ -81,7 +81,7 @@ services:
     container_name: multimedia-entrypoint
     environment:
       DOMAIN_NAME: ${ENTRYPOINT_DOMAIN_NAME}
-    entrypoint: ["/bin/sh", "/entrypoint.sh"]
+    entrypoint: [ "/bin/sh", "-c", "tr -d '\r' < /entrypoint.sh | sh" ] # Conversione CRLF→LF al volo con 'tr' (dos2unix)
     volumes:
       - ./nginx/https.template.conf:/etc/nginx/conf.d/default.conf.template:ro
       - ./nginx/entrypoint-inject.sh:/entrypoint.sh:ro
@@ -162,7 +162,7 @@ services:
     container_name: frontend
     environment:
       DOMAIN_NAME: ${ENTRYPOINT_DOMAIN_NAME}
-    entrypoint: [ "/bin/sh", "/entrypoint.sh" ]
+    entrypoint: [ "/bin/sh", "-c", "tr -d '\r' < /entrypoint.sh | sh" ] # Conversione CRLF→LF al volo con 'tr' (dos2unix)
     volumes:
       - ./frontend/src:/usr/share/nginx/html-ro:ro
       - ./frontend/src/entrypoint-inject.sh:/entrypoint.sh:ro

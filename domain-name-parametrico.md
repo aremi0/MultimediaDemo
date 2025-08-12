@@ -5,6 +5,7 @@ sul minor numero di elementi:
 
 1. La variabile `ENTRYPOINT_DOMAIN_NAME` nel file `.env`
 2. Il [client](./keycloak-readme.md#8-configurazione-e-creazione-del-frontend-client-con-integrazione-per-reverse-proxy) `frontend-client` nella console di amministrazione di Keycloak
+3. *<Opzionale per esecuzione in localhost>* Aggiungere il DNS nell'host file se si vuole eseguire in localhost,  [guida](./certs/https-readme.md#-guida-alla-modifica-del-file-hosts)
 
 Questa scelta semplifica la gestione del dominio in tutti i componenti, riducendo la duplicazione e il rischio di errori
 
