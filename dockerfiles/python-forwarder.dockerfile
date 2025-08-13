@@ -10,8 +10,8 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy source files
-COPY requirements.txt .
-COPY request_log.proto .
+COPY ../nginx/log-forwarder/requirements.txt .
+COPY ../nginx/log-forwarder/request_log.proto .
 
 # Install Python dependencies (includes grpcio-tools)
 RUN pip install --no-cache-dir -r requirements.txt

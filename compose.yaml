@@ -35,9 +35,10 @@ services:
 
   ########################## Server per OAuth2 ##########################
   keycloak:
-    image: ${KEYCLOAK_VERSION}
+    build:
+      context: .
+      dockerfile: dockerfiles/keycloak.dockerfile
     container_name: keycloak
-    command: [ "start" ]
     environment:
       - KC_HOSTNAME=https://${ENTRYPOINT_DOMAIN_NAME}
       - KC_PROXY_ADDRESS_FORWARDING=true
@@ -45,7 +46,6 @@ services:
       - KC_BOOTSTRAP_ADMIN_USERNAME=${KC_BOOTSTRAP_ADMIN_USERNAME}
       - KC_BOOTSTRAP_ADMIN_PASSWORD=${KC_BOOTSTRAP_ADMIN_PASSWORD}
       # Configurazioni per la connessione al db
-      - KC_DB=postgres
       - KC_DB_URL=jdbc:postgresql://keycloak-db:5432/keycloak
       - KC_DB_USERNAME=${POSTGRES_USER}
       - KC_DB_PASSWORD=${POSTGRES_PASSWORD}
@@ -57,9 +57,15 @@ services:
       - KC_DB_POOL_INITIAL_SIZE=5
       - KC_DB_POOL_MIN_SIZE=5
       - KC_DB_POOL_MAX_SIZE=20
-      - KC_CACHE=local  # Se non serve clustering
+      - KC_CACHE=local  # Se non serve clustering (a meno che non si voglia usare k8s)
     volumes:
       - ./certs:/opt/keycloak/certs:ro
+    read_only: true
+    tmpfs:
+      - /tmp:rw,size=50m
+      - /opt/keycloak/data:rw,size=100m
+      - /opt/keycloak/tmp:rw,size=50m
+      - /opt/keycloak/log:rw,size=20m
     networks:
       - multimedia
     depends_on:
@@ -77,6 +83,19 @@ services:
       - 5432
     volumes:
       - keycloak_data:/var/lib/postgresql/data
+    tmpfs:
+      - /tmp:rw,size=100m,noexec,nosuid,nodev
+      - /run/postgresql:rw,size=10m,noexec,nosuid,nodev
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
     networks:
       - multimedia
   ##########################################################
@@ -112,7 +131,7 @@ services:
   log-forwarder:
     build:
       context: ./nginx/log-forwarder
-      dockerfile: python-forwarder.dockerfile
+      dockerfile: dockerfiles/python-forwarder.dockerfile
     container_name: log-forwarder
     command: [ "python", "app.py"]
     environment:
