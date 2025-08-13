@@ -125,10 +125,8 @@ Se tutto funziona, otterrai un JSON con access token e refresh token.
 ## 8 Configurazione e creazione del frontend-client con integrazione per reverse-proxy
 
 ### Configurazioni iniziali
-1. Modificare il `[command]` per il lancio del container *keycloak* da docker come segue: `command: [ "start", "--hostname", "https://multimedia-entrypoint", "--hostname-strict", "false", "--proxy-headers", "xforwarded" ]`  
-Questi parametri abiliteranno il forwarding dell'hostnameV2 comunicando al server *keycloak* che si trova dietro un *proxy* (in questo caso esposto all'esterno alla porta `443`)
-2. Assicurarsi che il server `proxy` abbia un file di configurazione ben configurato per settare l'hostname della richiesta senza sovrascriverlo con il suo hostname interno (vedi location `/` [qui](/nginx/https.conf))
-3. Assicurarsi che il server `frontend` rimbalzi le richieste di autenticazione verso il server `proxy` e che configuri correttamente il client per interagire con `keycloak` (vedi [qui](/frontend/src/script.js))
+1. Assicurarsi che il server `proxy` abbia un file di configurazione ben configurato per settare l'hostname della richiesta senza sovrascriverlo con il suo hostname interno (vedi location `/` [qui](/nginx/https.template.conf))
+2. Assicurarsi che il server `frontend` rimbalzi le richieste di autenticazione verso il server `proxy` e che configuri correttamente il client per interagire con `keycloak` (vedi [qui](/frontend/src/script.template.js))
 
 ---
 
@@ -165,9 +163,9 @@ L'accesso avviene tramite un **reverse proxy Nginx**.
 1. **Accesso al frontend**: il browser accede a `https://multimedia-entrypoint/multimedia`, che corrisponde al container **NGINX Reverse-Proxy** esposto verso l'esterno sulla porta `443`.
 2. **Login**: il frontend usa `keycloak-js` per iniziare il flusso di autenticazione. La richiesta viene inviata a `https://multimedia-entrypoint/realms/multimedia-realms`,
 cioè alla porta esterna del *Reverse-Proxy*.
-3. **Reverse-Proxy**: Nginx riceve la richiesta sulla porta `443` e la inoltra internamente a Keycloak sulla porta interna `8081`.
+3. **Reverse-Proxy**: Nginx riceve la richiesta sulla porta `443` e la inoltra internamente a Keycloak sulla porta interna `8443`.
 4. **Keycloak**: genera la pagina di login e la restituisce al browser tramite il proxy con una `redirect` su `https://multimedia-entrypoint/realms/multimedia-realms`
-(per questo devo esporre il *Reverse-Proxy* verso l'esterno, perchè altrimenti né `http://keycloak:8081` né la porta interna del *Reverse-Proxy*
+(per questo devo esporre il *Reverse-Proxy* verso l'esterno, perchè altrimenti né `https://keycloak:8443` né la porta interna del *Reverse-Proxy*
 sono raggiungibili dall'esterno della subnet e al tempo stesso *OAuth2* funziona proprio in questa maniera, ovvero una redirect verso
 il servizio di Autenticazione che si occuperà egli stesso della sicurezza della comunicazione e dei dati)
 5. **Autenticazione**: l’utente inserisce le credenziali. La richiesta viene inoltrata nuovamente al proxy e poi a Keycloak.
