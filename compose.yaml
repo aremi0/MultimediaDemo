@@ -37,22 +37,29 @@ services:
   keycloak:
     image: ${KEYCLOAK_VERSION}
     container_name: keycloak
-    command: [ "start", "--hostname", "https://multimedia-entrypoint", "--hostname-strict", "false", "--proxy-headers", "xforwarded" ]
+    command: [ "start" ]
     environment:
+      - KC_HOSTNAME=https://${ENTRYPOINT_DOMAIN_NAME}
+      - KC_PROXY_ADDRESS_FORWARDING=true
+      - KC_PROXY_HEADERS=xforwarded
+      - KC_BOOTSTRAP_ADMIN_USERNAME=${KC_BOOTSTRAP_ADMIN_USERNAME}
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=${KC_BOOTSTRAP_ADMIN_PASSWORD}
+      # Configurazioni per la connessione al db
       - KC_DB=postgres
       - KC_DB_URL=jdbc:postgresql://keycloak-db:5432/keycloak
       - KC_DB_USERNAME=${POSTGRES_USER}
       - KC_DB_PASSWORD=${POSTGRES_PASSWORD}
-      - KC_HTTP_ENABLED=true
-      - KC_HTTP_PORT=8081
-      - KC_BOOTSTRAP_ADMIN_USERNAME=${KC_BOOTSTRAP_ADMIN_USERNAME}
-      - KC_BOOTSTRAP_ADMIN_PASSWORD=${KC_BOOTSTRAP_ADMIN_PASSWORD}
-      #- KC_IMPORT=/opt/keycloak/data/import/multimedia-realm.json
-      # settings del reverse-proxy inserite sul command per usare la configurazione hostname v2 introdotta con keycloak 21+
-    expose:
-      - 8081
-    #volumes:
-    #  - ./realms:/opt/keycloak/data/import
+      # Configurazioni HTTPS
+      - KC_HTTPS_CERTIFICATE_FILE=/opt/keycloak/certs/cert.pem
+      - KC_HTTPS_CERTIFICATE_KEY_FILE=/opt/keycloak/certs/key.pem
+      - KC_HTTP_ENABLED=false
+      # Opzionali per migliorare le  performance
+      - KC_DB_POOL_INITIAL_SIZE=5
+      - KC_DB_POOL_MIN_SIZE=5
+      - KC_DB_POOL_MAX_SIZE=20
+      - KC_CACHE=local  # Se non serve clustering
+    volumes:
+      - ./certs:/opt/keycloak/certs:ro
     networks:
       - multimedia
     depends_on:
