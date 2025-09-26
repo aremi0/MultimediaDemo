@@ -23,6 +23,8 @@ import java.util.Objects;
 public class RequestLoggingAspect {
     @Value("${app.kafka-topic.request:log.request.demo-service}")
     private String topic;
+    @Value("${spring.application.name:demo-service}")
+    private String applicationName;
 
     private final RequestLogReceiverGrpc.RequestLogReceiverBlockingStub stub;
 
@@ -43,7 +45,7 @@ public class RequestLoggingAspect {
         var result = joinPoint.proceed();
 
         var end = Instant.now();
-        var duration = Duration.between(start, end);
+        var durationMs = end.toEpochMilli() - start.toEpochMilli();
 
         var statusCode = extractStatusCode(result);
 
@@ -52,8 +54,8 @@ public class RequestLoggingAspect {
             .setRemoteAddr(!Objects.isNull(clientIp) ? clientIp : "unknown")
             .setRequest(method + " " + uri + " " + protocol)
             .setStatus(statusCode)
-            .setRequestTime(duration + "ms")
-            .setService("demo-gateway")
+            .setRequestTime(durationMs + "ms")
+            .setService(applicationName)
             .setKafkaTopic(topic)
             .build();
 

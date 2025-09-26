@@ -23,6 +23,8 @@ public class GrpcLoggingFilter implements WebFilter {
 
     @Value("${app.kafka-topic.request:log.request.api-gateway}")
     private String topic;
+    @Value("${spring.application.name:gateway-service}")
+    private String applicationName;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
@@ -43,7 +45,7 @@ public class GrpcLoggingFilter implements WebFilter {
                     .setStatus(!Objects.isNull(exchange.getResponse().getStatusCode()) ?
                         String.valueOf(exchange.getResponse().getStatusCode().value()) : "unknown")
                     .setRequestTime(durationMs + "ms")
-                    .setService("api-gateway")
+                    .setService(applicationName)
                     .setKafkaTopic(topic)
                     .build();
 

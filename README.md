@@ -32,7 +32,7 @@ Questa infrastruttura software è progettata per supportare un ecosistema di mic
 - Log-Forwarder in Python e verso SpringKafkaProducer per monitorare tutte le richieste in entrata
 - Più informazioni [qui](./certs/https-readme.md)
 
-<big>**ATTENZIONE**</big>, per far funziona tutta l'infrastruttura bisogna modificare il file host della macchina inserendo un nuovo DNS, [guida](./certs/https-readme.md#-guida-alla-modifica-del-file-hosts)
+<big>**ATTENZIONE**</big>, per far funziona tutta l'infrastruttura <b><u>in localhost</u></b> bisogna modificare il file host della macchina inserendo un nuovo DNS, [guida](./certs/https-readme.md#-guida-alla-modifica-del-file-hosts)
 
 ### 2. API Gateway
 - Basato su **Spring Cloud Gateway WebFlux**
