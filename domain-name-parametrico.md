@@ -5,7 +5,7 @@ sul minor numero di elementi:
 
 1. La variabile `ENTRYPOINT_DOMAIN_NAME` nel file `.env`
 2. Il [client](./keycloak-readme.md#8-configurazione-e-creazione-del-frontend-client-con-integrazione-per-reverse-proxy) `frontend-client` nella console di amministrazione di Keycloak
-3. *<Opzionale per esecuzione in localhost>* Aggiungere il DNS nell'host file se si vuole eseguire in localhost,  [guida](./certs/https-readme.md#-guida-alla-modifica-del-file-hosts)
+3. *__Opzionale__*: Aggiungere il DNS nell'host file se si vuole eseguire in localhost,  [guida](./certs/https-readme.md#-guida-alla-modifica-del-file-hosts)
 
 Questa scelta semplifica la gestione del dominio in tutti i componenti, riducendo la duplicazione e il rischio di errori
 
@@ -25,11 +25,19 @@ attraverso l'uso del tool `envsubst` come segue: `> envsubst '${DOMAIN_NAME}' < 
 
 Questa configurazione garantisce che ogni componente sia automaticamente aggiornato al cambio di dominio, senza necessità di modifiche manuali nei file statici
 
+
+### 🍂 2.2 - Parametrizzazione nei container Spring
+
+Nei container *Spring* la parametrizzazione è implementata passando il nome del dominio come variabile d'ambiente ed
+usando tale parametro variabile all'interno del codice sorgente.
+
+`https://${DOMAIN_NAME:multimedia-entrypoint}/realms/multimedia-realm`
+
 ---
 
 ## 🔐 Capitolo 3 – Sicurezza
 
-### 🛡️ 3.1 - Misure di sicurezza nei container NGINX
+### 🛡️ 3.1 - Misure di sicurezza nei container NGINX e Java
 
 Per garantire la robustezza dell’architettura, sono state adottate le seguenti misure:
 
