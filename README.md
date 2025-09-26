@@ -10,7 +10,7 @@ Questa infrastruttura software è progettata per supportare un ecosistema di mic
 - **API Gateway** per l'instradamento centralizzato delle richieste, posto dopo il Reverse-Proxy e non esposto verso l'esterno
 - **Bilanciamento dinamico del carico** tramite Spring Cloud Gateway Webflux
 - **Logging centralizzato** tramite Apache Kafka attraverso servizio SpringKafkaProducer
-- **Containerizzazione con Docker** per una gestione semplificata
+- **Containerizzazione con Docker e protezione container** per una gestione semplificata e [sicura](./domain-name-parametrico.md#-capitolo-3--sicurezza)
 - **Estendibilità** per aggiungere nuovi servizi Spring in futuro
 - **OAuth2** per la protezione delle risorse 
 - **Frontend** spartano, integrato con il sistema di autenticazione e che in update futuri integrerà funzionalità di streaming MP3 e PDF

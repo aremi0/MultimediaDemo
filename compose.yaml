@@ -18,6 +18,10 @@ services:
       - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
       - ALLOW_PLAINTEXT_LISTENER=yes
       - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+    volumes:
+      - kafka-config:/opt/bitnami/kafka/config
+      - kafka-data:/bitnami/kafka # Volume per persistere topic e messaggi
+    read_only: true
     networks:
       - multimedia
 
@@ -29,6 +33,7 @@ services:
     environment:
       - KAFKA_CLUSTERS_0_NAME=local
       - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
+    read_only: true
     networks:
       - multimedia
   ##########################################################
@@ -49,7 +54,7 @@ services:
       - KC_DB_URL=jdbc:postgresql://keycloak-db:5432/keycloak
       - KC_DB_USERNAME=${POSTGRES_USER}
       - KC_DB_PASSWORD=${POSTGRES_PASSWORD}
-      # Configurazioni HTTPS
+      # Configurazioni SSL
       - KC_HTTPS_CERTIFICATE_FILE=/opt/keycloak/certs/cert.pem
       - KC_HTTPS_CERTIFICATE_KEY_FILE=/opt/keycloak/certs/key.pem
       - KC_HTTP_ENABLED=false
@@ -223,7 +228,11 @@ services:
     tmpfs:
       - /tmp
     working_dir: /app
-    command: ["java", "-jar", "/app/service.jar"]
+    command: [
+      "java",
+      "-jar",
+      "/app/service.jar"
+    ]
     networks:
       - multimedia
     depends_on:
@@ -296,6 +305,8 @@ services:
 volumes:
   keycloak_data:
   nginx-logs:
+  kafka-config:
+  kafka-data: # Volume per persistere topic e messaggi
 
 networks:
   multimedia:

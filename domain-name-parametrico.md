@@ -37,7 +37,7 @@ usando tale parametro variabile all'interno del codice sorgente.
 
 ## 🔐 Capitolo 3 – Sicurezza
 
-### 🛡️ 3.1 - Misure di sicurezza nei container NGINX e Java
+### 🛡️ 3.1 - Misure di sicurezza dei container
 
 Per garantire la robustezza dell’architettura, sono state adottate le seguenti misure:
 
