@@ -1,4 +1,4 @@
-package com.aremi.musicstreamingservice.config;
+package com.aremi.musicstreamingservice.conf;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
