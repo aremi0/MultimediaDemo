@@ -62,4 +62,27 @@ function onLoginSuccess() {
     document.getElementById('logoutBtn').style.display = 'inline-block';
     document.getElementById('content').style.display = 'block';
     document.getElementById('token').innerText = keycloak.token;
+
+    // Trigger evento di pre-caching del brano più ascoltato al login-success
+    // Invia POST verso gateway-service (API-Gateway) che a sua volta invia messaggio al microservizio di streaming
+    fetch("https://${DOMAIN_NAME}/api/gateway-service/v1/event", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${keycloak.token}`
+        },
+        body: JSON.stringify({
+            eventType: "login-success",
+            userId: keycloak.tokenParsed.sub,
+            timestamp: new Date().toISOString()
+        }).then(res => {
+            if(!res.ok) {
+                throw new Error("Errore durante invio evento");
+            } else {
+                console.log("Evento inviato con successo");
+            }
+        }).catch(err => {
+            console.error("Errore durante invio evento", err);
+        })
+    })
 }
