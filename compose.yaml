@@ -194,18 +194,19 @@ services:
   ##########################################################
 
   ############################# Database & Caching (Redis) #############################
-  mariadb:
-    image: ${MARIADB_VERSION}
-    container_name: mariadb
+  mongodb:
+    image: ${MONGODB_VERSION}
+    container_name: mongodb
     volumes:
-      - mariadb_data:/var/lib/mysql
+      - mongodb_data:/data/db
     environment:
-      MYSQL_ROOT_PASSWORD: ${MARIADB_ROOT_PASS}
-      MYSQL_DATABASE: musicdb
-      MYSQL_USER: ${MARIADB_USER}
-      MYSQL_PASSWORD: ${MARIADB_PASSWORD}
+      MONGO_INITDB_DATABASE: musicdb
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    networks:
+      - multimedia
     expose:
-      - 3306
+      - 27017
 
   redis:
     image: ${REDIS_VERSION}
@@ -214,6 +215,8 @@ services:
       - redis_data:/data
       - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    networks:
+      - multimedia
     expose:
       - 6379
   ##########################################################
@@ -332,7 +335,7 @@ volumes:
   nginx-logs:
   kafka-config:
   kafka-data: # Volume per persistere topic e messaggi
-  mariadb_data:
+  mongodb_data:
   redis_data:
 
 networks:
