@@ -330,6 +330,44 @@ services:
       - spring-kafka-producer
       - gatewayService
 
+  musicStreamingService1:
+    image: ${JAVA_VERSION}
+    container_name: music-streaming-service
+    volumes:
+      - ./MusicStreamingService/target/MusicStreamingService-0.0.1-SNAPSHOT.jar:/app/service.jar:ro
+      - ./music-dir:/app/music:ro
+      - ./certs/multimedia-keystore.p12:/app/keystore.p12:ro
+    read_only: true
+    tmpfs:
+      - /tmp
+    working_dir: /app
+    command: [
+      "java",
+      "-Djavax.net.ssl.trustStore=/app/keystore.p12",
+      "-Djavax.net.ssl.trustStorePassword=${TRUSTSTORE_PASSWORD}",
+      "-Djavax.net.ssl.trustStoreType=PKCS12",
+      "-jar",
+      "/app/service.jar"
+    ]
+    environment:
+      DOMAIN_NAME: ${ENTRYPOINT_DOMAIN_NAME}
+      KAFKA_PRODUCER_HOSTNAME: spring-kafka-producer
+      KAFKA_PRODUCER_PORT: 6565
+      REQUEST_KAFKA_TOPIC: log.request.music-streaming-service
+      TRUSTSTORE_PASSWORD: ${TRUSTSTORE_PASSWORD}
+      MONGO_USER: ${MONGO_USER}
+      MONGO_PASSWORD: ${MONGO_PASSWORD}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    networks:
+      - multimedia
+    depends_on:
+      - eurekaServer
+      - keycloak
+      - spring-kafka-producer
+      - gatewayService
+      - redis
+      - mongodb
+
 volumes:
   keycloak_data:
   nginx-logs:
