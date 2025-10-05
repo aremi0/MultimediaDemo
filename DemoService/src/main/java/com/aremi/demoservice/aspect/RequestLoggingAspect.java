@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
 import requestlog.RequestLogOuterClass;
 import requestlog.RequestLogReceiverGrpc;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
 
