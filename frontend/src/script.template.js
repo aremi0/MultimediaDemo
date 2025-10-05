@@ -75,14 +75,17 @@ function onLoginSuccess() {
             eventType: "login-success",
             userId: keycloak.tokenParsed.sub,
             timestamp: new Date().toISOString()
-        }).then(res => {
-            if(!res.ok) {
-                throw new Error("Errore durante invio evento");
-            } else {
-                console.log("Evento inviato con successo");
-            }
-        }).catch(err => {
-            console.error("Errore durante invio evento", err);
         })
     })
+    .then(res => {
+        if (!res.ok) {
+            throw new Error("Errore durante invio evento");
+        } else {
+            console.log("Evento inviato con successo");
+        }
+    })
+    .catch(err => {
+        console.error("Errore durante invio evento", err);
+    });
+
 }
