@@ -1,16 +1,16 @@
-# Spring Distributed Infrastructure with Eureka, API Gateway, Kafka Logging and Docker
+# Multimedia Distributed Infrastructure with Spring, Eureka, API Gateway, Kafka, Docker and more
 
 ## 🧭 Overview
 
-Questa infrastruttura software è progettata per supportare un ecosistema di microservizi distribuiti basati su **Spring Boot**. Include:
+Questa infrastruttura software è progettata per supportare un ecosistema di microservizi distribuiti basati su **Spring Boot** e include:
 
-- **Dominio** configurabile con singola modifica, leggi [qui](./domain-name-parametrico.md)
+- **Dominio** configurabile con singola modifica, leggi [qui](doc/domain-name-parametrico.md)
 - **Service Discovery** tramite Eureka Server
 - **SSL/HTTPS** tramite un Reverse-Proxy posto come unico punto di ingresso alla subnet, per una gestione centralizzata di HTTPS
 - **API Gateway** per l'instradamento centralizzato delle richieste, posto dopo il Reverse-Proxy e non esposto verso l'esterno
 - **Bilanciamento dinamico del carico** tramite Spring Cloud Gateway Webflux
 - **Logging centralizzato** tramite Apache Kafka attraverso servizio SpringKafkaProducer
-- **Containerizzazione con Docker e protezione container** per una gestione semplificata e [sicura](./domain-name-parametrico.md#-capitolo-3--sicurezza)
+- **Containerizzazione con Docker e protezione container** per una gestione semplificata e [sicura](doc/domain-name-parametrico.md#-capitolo-3--sicurezza)
 - **Estendibilità** per aggiungere nuovi servizi Spring in futuro
 - **OAuth2** per la protezione delle risorse 
 - **Frontend** spartano, integrato con il sistema di autenticazione e che in update futuri integrerà funzionalità di streaming MP3 e PDF
@@ -18,66 +18,61 @@ Questa infrastruttura software è progettata per supportare un ecosistema di mic
 
 ---
 
-## 🧱 Componenti principali
+<big>**ATTENZIONE**</big>, per far funziona tutta l'infrastruttura <b><u>in localhost</u></b> bisogna modificare il file host della macchina inserendo un nuovo DNS, [guida](doc/ssl/https-readme.md#-guida-alla-modifica-del-file-hosts)
 
-### 1. Eureka Server
-- Funziona come **registro dei servizi**
-- Permette ai microservizi di registrarsi e scoprirsi tra loro
-- Porta predefinita: `8761`
+## 🧱 Architettura
 
-### 2. Reverse-Proxy HTTPS
-- Unico punto di ingresso alla subnet e all'infrastruttura, espone su `https://multimedia-entrypoint/`
-- Centralizza la cifratura SSL dall'esterno, permettendo quindi una comunicazione intranet semplificata in HTTP
-- Permette di applicare agevolmente filtri, controlli di sicurezza e limitazioni del traffico in entrata (DA INTEGRARE)
-- Log-Forwarder in Python e verso SpringKafkaProducer per monitorare tutte le richieste in entrata
-- Più informazioni [qui](./certs/https-readme.md)
+### 1. Entrypoint con SSL/HTTPS
+Gestione della sicurezza centralizzata tramite Reverse-Proxy HTTPS, che si occupa di cifrare tutte le comunicazioni in ingresso,
+centralizzando la gestione dei certificati SSL.
+Tutti i sistemi all'interno della sottorete usano lo stesso certificato SSL per cifrare le comunicazioni.  
 
-<big>**ATTENZIONE**</big>, per far funziona tutta l'infrastruttura <b><u>in localhost</u></b> bisogna modificare il file host della macchina inserendo un nuovo DNS, [guida](./certs/https-readme.md#-guida-alla-modifica-del-file-hosts)
+Il Reverse-Proxy funge da unico punto ingresso per interagire con l'architettura, entrypoint su `https://multimedia-entrypoint/`
+Più informazioni [qui](doc/ssl/reverse-proxy-doc.md) e più generali [qui](doc/ssl/reverse-proxy-general.md).  
 
-### 2. API Gateway
-- Basato su **Spring Cloud Gateway WebFlux**
-- Si registra su Eureka e instrada le richieste ai servizi downstream
-- Supporta **Discovery Locator** per generare automaticamente le rotte
-- Configurato come client `confidential` per l'authentication
+E' disponibile un Frontend, dietro il Reverse-Proxy, che fornisce un'interfaccia utente per interagire con l'architettura.
+accessibile su `https://multimedia-entrypoint/multimedia
 
-### 3. Logging centralizzato con Kafka
-- Il sistema include un **Kafka Producer Service** che centralizza le interazioni con `Kafka Broker`
-- Ogni servizio/microservizio può pubblicare i propri messaggi su un topic dedicato (es. `log.request.service-name`) inviando via *gRPC* al **Kafka Producer Service**
-- I log possono essere successivamente consumati da un'applicazione di monitoraggio o da un sistema di persistenza
-- Le informazioni di Kafka sono visualizzabili tramite **Kafka UI** (browser) alla porta `8085`.
+### 2. Bilanciamento del carico
+Il load balancing utilizza una combinazione delle seguenti tecnologie, ciascuna per risolvere uno specifico problema:
+- **Eureka Server** per la gestione dei servizi e il routing delle richieste, più info [qui](./EurekaServer/README.md).
+- **API Gateway** più info [qui](./ApiGateway/README.md), utilizza:
+  - **Spring Cloud Gateway Webflux** per il routing delle richieste ai servizi downstream. Servizi che possono aggiungersi 
+  o rimuoversi dinamicamente dal server Eureka, favorendo scaling orizzontale. Il routing avviene automaticamente tramite risoluzione DNS nell'URI.
+  - **Spring Cloud LoadBalancer** che distribuisce le richieste tra le istanze disponibili e più libere.
+  - Configurato come client Keycloak `confidential` per l'authentication.
 
-### 5. Servizio Spring "Demo"
-- Configurato come resource server `bearer-only` per l'authorization
-- Presenta un API pubbliche e private, anche role-based
-
-### 6. Server Keycloak per l'Authentication
-- [Configurazione server Keycloak](./keycloak-readme.md)
-- [Informazioni sul flusso](./integrazione-ouath2.md)
-- Il sistema include un server **Keycloak** runnato in modalità PROD, non esposto fuori dalla subnet
-- Si appoggia su un database `postgress` per il salvataggio delle configurazioni
-- Per interazioni dall'esterno della sottorete è stato posto un server Reverse-Proxy come layer intermediario tra l'esterno ed il server keycloak. Vai [qui](./keycloak-readme.md#8-configurazione-e-creazione-del-frontend-client-con-integrazione-per-reverse-proxy) per informazioni su come interrogarlo
-
-### 7. Interfaccia Frontend spartana per le interazioni con l'architettura
-- Scritto in HTML e Javascript puri per fornire una navigazione più scorrevole rispetto all'uso di un http-client, non il massimo della sicurezza ma trascurabile per i fini formativi del progetto
-- Protetto comunque da HTTPS, è un container nascosto dietro il Reverse-Proxy e accessibile su `https://multimedia-entrypoint/multimedia`
-- Si interfaccia con il server di Authentication Keycloak tramite Reverse-Proxy HTTPS per garantire la cifratura della comunicazione e la corretta gestione di CORS e forwarding
-- Integrerà nei prossimi aggiornamenti i servizi forniti dai microservizi Spring presenti nell'architettura, tra cui streaming MP3 e PDF
-
----
-
-## ⚖️ Bilanciamento dinamico con Spring Cloud Gateway
-
-Spring Cloud Gateway Webflux utilizza **Spring Cloud LoadBalancer** per distribuire dinamicamente le richieste tra le istanze dei servizi registrati su Eureka
-
-### Come funziona:
+#### Come funziona:
 - Ogni servizio si registra su Eureka con un `serviceId`
-- Il Gateway, con `discovery.locator.enabled=true`, rileva automaticamente i servizi
+- Il API-Gateway, con `discovery.locator.enabled=true`, rileva automaticamente i servizi
 - Le richieste vengono indirizzate usando URI come: `lb://nome-servizio`
 - Il LoadBalancer integrato distribuisce le richieste tra le istanze disponibili (round-robin di default)
 
+### 3. Autenticazione & Autorizzazione - OAuth2
+Integrato un sistema di autenticazione OAuth2 tramite server interno Keycloak, che si occupa di gestire l'autenticazione
+e l'autorizzazione degli utenti.
+- [Configurazione SEMI-AUTOMATICA server Keycloak](doc/auth/keycloak-import-guide.md)
+- [Configurazione MANUALE server Keycloak](doc/auth/keycloak-readme.md)
+- [Configurazione del Frontend-Client e del Reverse-Proxy](doc/auth/keycloak-readme.md#8-configurazione-e-creazione-del-frontend-client-con-integrazione-per-reverse-proxy)
+- [Informazioni sul flusso](doc/auth/integrazione-ouath2.md)
+
+### 4. Logging centralizzato con Kafka
+- Il sistema include un **Kafka Producer Service** che centralizza le interazioni con `Kafka Broker`
+- Ogni servizio/microservizio può pubblicare i propri messaggi su un topic dedicato (es. `log.request.service-name`) inviando via *gRPC* al **Kafka Producer Service**
+- I log possono essere successivamente consumati da un'applicazione di monitoraggio o da un sistema di persistenza
+- Le informazioni di Kafka sono visualizzabili tramite **Kafka UI** (browser)`.
+
+### 5. Servizio Spring "demo-service"
+Servizio Spring che fornisce un semplice endpoint per testare l'integrazione con Keycloak, più info [qui](./DemoService/README.md).
+- Configurato come resource server `bearer-only` per l'authorization
+- Presenta API pubbliche e private, anche role-based,
+
+### 6. Servizio Spring "music-streaming-service"
+
+
 ---
 
-## 🔍 Servizi di Monitoraggio
+## 🔍 Monitoraggio
 
 - **EurekaServer Dashboard**: http://localhost:8761
 - **Kafka UI**: http://localhost:8085

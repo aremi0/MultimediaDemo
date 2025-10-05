@@ -4,8 +4,8 @@ L’obiettivo è **parametrizzare il `DOMAIN_NAME`** in modo centralizzato per t
 sul minor numero di elementi:
 
 1. La variabile `ENTRYPOINT_DOMAIN_NAME` nel file `.env`
-2. Il [client](./keycloak-readme.md#8-configurazione-e-creazione-del-frontend-client-con-integrazione-per-reverse-proxy) `frontend-client` nella console di amministrazione di Keycloak
-3. *__Opzionale__*: Aggiungere il DNS nell'host file se si vuole eseguire in localhost,  [guida](./certs/https-readme.md#-guida-alla-modifica-del-file-hosts)
+2. Il [client](auth/keycloak-readme.md#8-configurazione-e-creazione-del-frontend-client-con-integrazione-per-reverse-proxy) `frontend-client` nella console di amministrazione di Keycloak
+3. *__Opzionale__*: Aggiungere il DNS nell'host file se si vuole eseguire in localhost,  [guida](ssl/https-readme.md#-guida-alla-modifica-del-file-hosts)
 
 Questa scelta semplifica la gestione del dominio in tutti i componenti, riducendo la duplicazione e il rischio di errori
 
