@@ -1,4 +1,4 @@
-package com.aremi.musicstreamingservice.security;
+package com.aremi.musicstreamingservice.conf.security;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.convert.converter.Converter;
