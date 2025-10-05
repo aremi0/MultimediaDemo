@@ -65,7 +65,7 @@ function onLoginSuccess() {
 
     // Trigger evento di pre-caching del brano più ascoltato al login-success
     // Invia POST verso music-streaming-service
-    fetch("https://${DOMAIN_NAME}/api/music-streaming-service/v1/private/preload", {
+    fetch("https://${DOMAIN_NAME}/api/music-streaming-service/v1/private/preload/login", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
