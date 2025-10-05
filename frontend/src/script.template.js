@@ -64,8 +64,8 @@ function onLoginSuccess() {
     document.getElementById('token').innerText = keycloak.token;
 
     // Trigger evento di pre-caching del brano più ascoltato al login-success
-    // Invia POST verso gateway-service (API-Gateway) che a sua volta invia messaggio al microservizio di streaming
-    fetch("https://${DOMAIN_NAME}/api/gateway-service/v1/event", {
+    // Invia POST verso music-streaming-service
+    fetch("https://${DOMAIN_NAME}/api/music-streaming-service/v1/preload", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
