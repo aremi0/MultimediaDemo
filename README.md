@@ -68,7 +68,7 @@ Servizio Spring che fornisce un semplice endpoint per testare l'integrazione con
 - Presenta API pubbliche e private, anche role-based,
 
 ### 6. Servizio Spring "music-streaming-service"
-
+[qui](./MusicStreamingService/README.md)
 
 ---
 
