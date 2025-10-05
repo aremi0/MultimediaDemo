@@ -24,11 +24,6 @@ public class PreloadController {
 
     @PostMapping("/login")
     public Mono<ResponseEntity<Void>> loginPreload(@Valid @RequestBody LoginPreloadRequest request) {
-        if(request == null || request.getUserId() == null || request.getUserId().isBlank()) {
-            log.warn("Richiesta preload non valida: {}", request);
-            return Mono.just(ResponseEntity.badRequest().build());
-        }
-
         return preloadService.preloadForUser(request.getUserId())
                 .thenReturn(ResponseEntity.ok().build());
     }
