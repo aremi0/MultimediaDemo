@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,6 +23,7 @@ public class PreloadController {
 
     private final PreloadService preloadService;
 
+    @PreAuthorize("hasRole('MUSIC')")
     @PostMapping("/login")
     public Mono<ResponseEntity<Void>> loginPreload(@Valid @RequestBody LoginPreloadRequest request) {
         return preloadService.preloadForUser(request.getUserId())

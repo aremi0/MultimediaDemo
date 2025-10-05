@@ -32,7 +32,7 @@ public class DemoController {
     }
 
     // Endpoint protetto, accessibile solo ad utenti autenticati con ruolo USER_ROLE
-    @PreAuthorize("hasRole(T(com.aremi.demoservice.security.Roles).USER)")
+    @PreAuthorize("hasRole('USER')")
     @GetMapping("/private/user")
     public ResponseEntity<Map<String, String>> user(HttpServletRequest request,
                                                     @RequestHeader Map<String, String> headers,
