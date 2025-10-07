@@ -1,5 +1,6 @@
-package com.aremi.musicstreamingservice.conf.security;
+package com.aremi.musicstreamingservice.conf;
 
+import com.aremi.musicstreamingservice.security.KeycloakReactiveRoleConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;

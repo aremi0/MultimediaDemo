@@ -1,4 +1,4 @@
-package com.aremi.musicstreamingservice.conf.security;
+package com.aremi.musicstreamingservice.security;
 
 public enum Roles {
     MUSIC("MUSIC"),;

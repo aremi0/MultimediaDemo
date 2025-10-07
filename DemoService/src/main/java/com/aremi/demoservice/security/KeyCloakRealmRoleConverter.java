@@ -1,4 +1,4 @@
-package com.aremi.demoservice.conf.security;
+package com.aremi.demoservice.security;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.convert.converter.Converter;

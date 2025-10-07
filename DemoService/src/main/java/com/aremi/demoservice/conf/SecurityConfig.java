@@ -1,5 +1,6 @@
-package com.aremi.demoservice.conf.security;
+package com.aremi.demoservice.conf;
 
+import com.aremi.demoservice.security.KeyCloakRealmRoleConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
