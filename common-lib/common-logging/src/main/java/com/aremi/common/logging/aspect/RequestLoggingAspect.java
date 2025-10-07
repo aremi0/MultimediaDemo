@@ -1,8 +1,11 @@
 package com.aremi.common.logging.aspect;
 
+import com.aremi.common.logging.annotation.Monitor;
+import com.aremi.common.logging.annotation.SubjectType;
 import com.aremi.common.logging.conf.RequestExtractorAutoConfiguration;
 import com.aremi.common.logging.extractor.RequestExtractor;
 import lombok.RequiredArgsConstructor;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -10,6 +13,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.stereotype.Component;
 import io.grpc.StatusRuntimeException;
 import org.springframework.web.server.ServerWebExchange;
@@ -17,16 +21,15 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import requestlog.RequestLogOuterClass;
 import requestlog.RequestLogReceiverGrpc;
+import com.aremi.common.logging.conf.ExchangeContextConfiguration;
 
 import java.time.Instant;
 
 /**
- * Aspect che intercetta i metodi dei controller per registrare i log delle richieste.
- *
  * <p>Funziona sia in contesti MVC (Servlet) che in contesti WebFlux (reattivi).
  * In MVC gli argomenti del metodo contengono l'oggetto {@code HttpServletRequest},
  * mentre in WebFlux il {@link ServerWebExchange} viene recuperato dal Reactor Context
- * grazie al filtro {@link com.aremi.common.logging.conf.ExchangeContextConfiguration}.</p>
+ * grazie al filtro {@link ExchangeContextConfiguration}.</p>
  *
  * <p>Il log viene inviato tramite gRPC a un servizio esterno, includendo informazioni
  * come metodo HTTP, URI, protocollo, indirizzo IP client, status e durata della richiesta.</p>
@@ -50,16 +53,26 @@ public class RequestLoggingAspect {
     private String applicationName;
 
     /**
-     * Intercetta i metodi dei controller e applica la logica di logging.
+     * Intercetta i metodi/classi annotati con {@link Monitor}.
      *
-     * @param joinPoint il punto di esecuzione del metodo
-     * @return il risultato originale del metodo (Mono, Flux o oggetto MVC)
-     * @throws Throwable se il metodo target lancia eccezioni
+     * <p>Vengono loggati solo se {@code enable=true} e {@code subjectType=CONTROLLER}.</p>
      */
-    @Around("execution(* com..controller..*(..))")
+    @Around("@within(com.aremi.common.logging.annotation.Monitor) || " +
+            "@annotation(com.aremi.common.logging.annotation.Monitor)")
     public Object logRequest(ProceedingJoinPoint joinPoint) throws Throwable {
-        log.info("debug______ aspect partito");
         var start = Instant.now();
+
+        // Recupera l'annotazione dal metodo o dalla classe
+        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+        Monitor monitor = AnnotationUtils.findAnnotation(signature.getMethod(), Monitor.class);
+        if (monitor == null) {
+            monitor = AnnotationUtils.findAnnotation(signature.getDeclaringType(), Monitor.class);
+        }
+
+        // Se non c’è annotazione o non è abilitata o non è CONTROLLER → esegui normalmente
+        if (monitor == null || !monitor.enable() || monitor.subjectType() != SubjectType.CONTROLLER) {
+            return joinPoint.proceed();
+        }
 
         Object result = joinPoint.proceed();
 
