@@ -30,16 +30,23 @@ public class MvcRequestExtractor implements RequestExtractor {
     }
 
     /**
-     * Restituisce l'URI della richiesta.
+     * Restituisce il path della richiesta (con eventuale query string).
      *
      * @param args array di argomenti del metodo del controller
-     * @return l'URI oppure "unknown" se non disponibile
+     * @return il path della richiesta (es. "/api/demo" o "/api/demo?foo=bar"),
+     *         oppure "unknown" se non disponibile
      */
     @Override
     public String getUri(Object[] args) {
         HttpServletRequest req = extract(args);
-        return req != null ? req.getRequestURI() : "unknown";
+        if (req != null) {
+            String path = req.getRequestURI();
+            String query = req.getQueryString();
+            return query != null ? "%s?%s".formatted(path, query) : path;
+        }
+        return "unknown";
     }
+
 
     /**
      * Restituisce il protocollo della richiesta (es. HTTP/1.1).
