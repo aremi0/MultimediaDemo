@@ -282,7 +282,8 @@ services:
       "-Djavax.net.ssl.trustStorePassword=${TRUSTSTORE_PASSWORD}",
       "-Djavax.net.ssl.trustStoreType=PKCS12",
       "-jar",
-      "/app/service.jar"
+      "/app/service.jar",
+      "--debug"
     ]
     environment:
       DOMAIN_NAME: ${ENTRYPOINT_DOMAIN_NAME}
@@ -349,7 +350,8 @@ services:
       "-Djavax.net.ssl.trustStorePassword=${TRUSTSTORE_PASSWORD}",
       "-Djavax.net.ssl.trustStoreType=PKCS12",
       "-jar",
-      "/app/service.jar"
+      "/app/service.jar",
+      "--debug"
     ]
     environment:
       DOMAIN_NAME: ${ENTRYPOINT_DOMAIN_NAME}
