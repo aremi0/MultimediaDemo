@@ -30,15 +30,18 @@ public class WebFluxRequestExtractor implements RequestExtractor {
     }
 
     /**
-     * Restituisce l'URI della richiesta.
+     * Restituisce il path della richiesta (con eventuale query string).
      *
      * @param args array che contiene il {@link ServerWebExchange}
-     * @return l'URI completo oppure "unknown" se non disponibile
+     * @return il path della richiesta (es. "/api/demo" o "/api/demo?foo=bar"),
+     *         oppure "unknown" se non disponibile
      */
     @Override
     public String getUri(Object[] args) {
         if (args.length > 0 && args[0] instanceof ServerWebExchange exchange) {
-            return exchange.getRequest().getURI().toString();
+            String path = exchange.getRequest().getURI().getPath();
+            String query = exchange.getRequest().getURI().getQuery();
+            return query != null ? "%s?%s".formatted(path, query) : path;
         }
         return "unknown";
     }
