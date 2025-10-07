@@ -128,7 +128,6 @@ services:
       - 443:443
     depends_on:
       - keycloak # Questo container funge anche da reverse-proxy usato per evitare di esporre keycloak fuori dalla subnet, permettendo comunque al browser di interfacciarsi con la dashboard di keycloak
-      - frontend
       - gatewayService
     networks:
       - multimedia
@@ -243,6 +242,7 @@ services:
       - 80
     depends_on:
       - keycloak
+      - multimedia-entrypoint
 
   spring-kafka-producer:
     image: ${JAVA_VERSION}
@@ -297,6 +297,7 @@ services:
       - keycloak
       - spring-kafka-producer
       - gatewayService
+      - multimedia-entrypoint
 
   demoService2:
     image: ${JAVA_VERSION}
@@ -329,6 +330,7 @@ services:
       - keycloak
       - spring-kafka-producer
       - gatewayService
+      - multimedia-entrypoint
 
   musicStreamingService1:
     image: ${JAVA_VERSION}
@@ -367,6 +369,7 @@ services:
       - gatewayService
       - redis
       - mongodb
+      - multimedia-entrypoint
 
 volumes:
   keycloak_data:
