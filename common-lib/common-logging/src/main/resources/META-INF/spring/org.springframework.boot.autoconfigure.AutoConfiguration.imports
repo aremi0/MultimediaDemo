@@ -1,0 +1,3 @@
+com.aremi.common.logging.conf.RequestLogConfigurer
+com.aremi.common.logging.conf.RequestExtractorAutoConfiguration
+com.aremi.common.logging.aspect.RequestLoggingAspect
