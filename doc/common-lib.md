@@ -53,6 +53,15 @@ forzando poi l’ordine di inizializzazione con l’annotazione `@AutoConfigurat
 in modo che l’aspect venga valutato solo dopo la creazione dei bean *RequestExtractor*. E infine impostando l'ordine corretto dei Bean 
 nel file `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` della libreria.
 
+### 3.6 Logging nei servizi WebFlux
+- **Problema**: l’*Aspect* non riusciva a recuperare il `ServerWebExchange`, producendo valori "*unknown*".
+- **Soluzione**:
+  1. Introdotto un WebFilter (`exchangeInjectorFilter`) che inserisce l'*exchange* nel *Reactor Context*.
+  L’aspect lo recupera e lo passa all’extractor. In MVC invece si usano direttamente gli args del metodo.
+  2. Refactoring del metodo sendLog con distinzione:
+     - WebFlux → argsForExtractor = [exchange], statusSource = exchange. 
+     - MVC → argsForExtractor = joinPoint.getArgs(), statusSource = result.
+
 ---
 
 ## 4. Soluzione finale
@@ -63,6 +72,7 @@ nel file `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfigurati
     - Configurazione gRPC `RequestLogConfigurer`.
     - Estrattori MVC/WebFlux condizionati.
     - File `AutoConfiguration.imports` per auto‑registrazione.
+    - Annotazione custom per monitoriaggio di classe/metodo, leggi [qui](#411-annotazione-monitor)
 - Espone solo le properties necessarie:
   ```yaml
   app:
@@ -75,6 +85,15 @@ nel file `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfigurati
     application:
       name: my-service
   ```
+
+#### 4.1.1 Annotazione @Monitor
+- **Problema**: l’aspect intercettava tutti i controller indiscriminatamente.
+
+- **Soluzione**: introdotta annotazione @Monitor(enable, subjectType) con enum SubjectType.  
+@within → intercetta tutte le classi annotate.  
+@annotation → intercetta singoli metodi.
+
+Annotazione sul metodo ha priorità su quella della classe (es. enable=false esclude un metodo anche se la classe è annotata).
 
 ### 4.2 Microservizi client (es. DemoService, ApiGateway, MusicStreamingService)
 - POM semplificato: aggiungono solo la dipendenza a `common-logging`.

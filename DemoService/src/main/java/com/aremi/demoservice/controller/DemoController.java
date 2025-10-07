@@ -1,5 +1,6 @@
 package com.aremi.demoservice.controller;
 
+import com.aremi.common.logging.annotation.Monitor;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/v2")
 @RequiredArgsConstructor
+@Monitor
 public class DemoController {
 
     @GetMapping("/public/demo")

@@ -1,5 +1,6 @@
 package com.aremi.musicstreamingservice.controller;
 
+import com.aremi.common.logging.annotation.Monitor;
 import com.aremi.musicstreamingservice.dto.LoginPreloadRequest;
 import com.aremi.musicstreamingservice.service.PreloadService;
 import jakarta.validation.Valid;
@@ -19,6 +20,7 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/v1/private/preload")
 @RequiredArgsConstructor
 @Validated
+@Monitor
 public class PreloadController {
 
     private final PreloadService preloadService;
