@@ -35,6 +35,7 @@ public class SongService {
 
         return songRepository.save(song)
                 .doOnSuccess(saved -> log.info("Canzone salvata con id {}", saved.getId()))
+                .doOnError(ex -> log.error("Errore salvataggio canzone, request {}", request, ex))
                 .then();
     }
 }
