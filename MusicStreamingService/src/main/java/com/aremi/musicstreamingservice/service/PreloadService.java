@@ -7,6 +7,24 @@ import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+/**
+ * Servizio responsabile del precaricamento dei chunk audio in cache.
+ * <p>
+ * Estende {@link AbstractChunkService} per riutilizzare la logica comune
+ * di recupero chunk da Redis o dal file system, ma si concentra sul caso
+ * specifico del preload delle canzoni di un utente.
+ * </p>
+ *
+ * <h2>Note</h2>
+ * Questo servizio non restituisce i dati audio al chiamante: il suo unico scopo
+ * è assicurarsi che i chunk potenzialmente richiedibili siano pronti in cache
+ * per ridurre la latenza durante lo streaming.
+ *
+ * @see AbstractChunkService
+ * @see StreamingSessionService
+ * @see UserStateService
+ */
+
 @Slf4j
 @Service
 public class PreloadService extends AbstractChunkService {
@@ -24,8 +42,17 @@ public class PreloadService extends AbstractChunkService {
     }
 
     /**
-     * Precarica il chunk 0 della activeSong dell'utente.
-     * Non restituisce i dati, ma garantisce che siano in cache.
+     * Precarica in cache il chunk iniziale (indice 0) della canzone attiva dell'utente.
+     * <p>
+     * - Se la canzone attiva è già presente in Redis, viene usata direttamente.<br>
+     * - Se non è presente, viene recuperata da MongoDB tramite {@link UserStateService}
+     *   e salvata in Redis tramite {@link StreamingSessionService}.<br>
+     * - In entrambi i casi, il chunk 0 viene letto (da Redis o da disco) e salvato in cache.<br>
+     * </p>
+     *
+     * @param userId identificativo univoco dell'utente
+     * @return un {@link Mono} che completa senza valore al termine del preload,
+     *         oppure emette errore se il chunk non è disponibile
      */
     public Mono<Void> preloadActiveSong(String userId) {
         return streamingSessionService.getActiveSong(userId)
