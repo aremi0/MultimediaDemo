@@ -1,6 +1,6 @@
 // FILE di TEMPLATE => serve uno script *.sh per sostituire le variabili d'ambiente
 
-import Keycloak  from 'https://cdn.jsdelivr.net/npm/keycloak-js@26.1.4/+esm'
+import Keycloak from 'https://cdn.jsdelivr.net/npm/keycloak-js@26.1.4/+esm'
 
 const keycloak = new Keycloak({
     url: 'https://${DOMAIN_NAME}/', // Inserisco l'indirizzo del nuovo https-reverse-proxy al path che mi indirizza verso keycloak '/auth/'
@@ -57,10 +57,15 @@ document.getElementById('callPrivate').addEventListener('click', () => {
         });
 });
 
+document.getElementById('goToPlayer').addEventListener('click', () => {
+    window.location.href = './player/player.html';
+});
+
 function onLoginSuccess() {
     document.getElementById('loginBtn').style.display = 'none';
     document.getElementById('logoutBtn').style.display = 'inline-block';
     document.getElementById('content').style.display = 'block';
+    document.getElementById('goToPlayer').style.display = 'inline-block';
     document.getElementById('token').innerText = keycloak.token;
 
     // Trigger evento di pre-caching del brano più ascoltato al login-success
