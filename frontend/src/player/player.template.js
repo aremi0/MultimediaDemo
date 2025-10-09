@@ -8,6 +8,8 @@ const keycloak = new Keycloak({
     clientId: 'frontend-client'
 });
 
+const info = JSON.parse(localStorage.getItem("activeSongInfo"));
+
 keycloak.init({
     onLoad: 'check-sso',
     checkLoginIframe: false,
@@ -17,23 +19,46 @@ keycloak.init({
     if (!authenticated) {
         keycloak.login();
     } else {
-        loadPreloadedSong();
+        loadActiveSong();
     }
 });
 
-function loadPreloadedSong() {
-    fetch("https://${DOMAIN_NAME}/api/music-streaming-service/v1/private/preload/song", {
-        headers: {
-            Authorization: `Bearer ${keycloak.token}`
-        }
-    })
-        .then(res => res.json())
-        .then(data => {
-            const audio = document.getElementById('audioPlayer');
-            audio.src = data.audioUrl; // es: https://cdn.example.com/songs/123.mp3
-            document.getElementById('songInfo').innerText = `Titolo: ${data.title}\nArtista: ${data.artist}`;
-        })
-        .catch(err => {
-            console.error("Errore nel caricamento del brano", err);
-        });
+if (info) {
+    document.getElementById('songInfo').innerText = `Titolo: ${info.title}\nArtista: ${info.artist}`;
 }
+
+function loadActiveSong() {
+    const audio = document.getElementById('audioPlayer');
+    const mediaSource = new MediaSource();
+    audio.src = URL.createObjectURL(mediaSource);
+
+    mediaSource.addEventListener('sourceopen', () => {
+        const sourceBuffer = mediaSource.addSourceBuffer('audio/mpeg'); // o 'audio/webm; codecs="vorbis"' se usi WebM
+
+        fetch("https://${DOMAIN_NAME}/api/music-streaming-service/v1/private/stream", {
+            headers: {
+                Authorization: `Bearer ${keycloak.token}`
+            }
+        })
+            .then(response => {
+                const reader = response.body.getReader();
+
+                function pump() {
+                    return reader.read().then(({ done, value }) => {
+                        if (done) {
+                            mediaSource.endOfStream();
+                            return;
+                        }
+                        sourceBuffer.appendBuffer(value);
+                        return pump();
+                    });
+                }
+
+                return pump();
+            })
+            .catch(err => {
+                console.error("Errore nello streaming audio", err);
+            });
+    });
+}
+

@@ -4,8 +4,10 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-public class LoginPreloadRequest {
+public class CreateUserStateRequest {
     @NotBlank(message = "userId è obbligatorio")
-    private String userId;      // es: "abc123"
-    private String timestamp;   // es: "2025-10-05T18:00:00Z"
+    private String userId;
+
+    @NotBlank(message = "activeSongId è obbligatorio")
+    private String activeSongId;;
 }

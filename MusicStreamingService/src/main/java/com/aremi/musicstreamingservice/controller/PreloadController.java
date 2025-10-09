@@ -1,6 +1,7 @@
 package com.aremi.musicstreamingservice.controller;
 
 import com.aremi.common.logging.annotation.Monitor;
+import com.aremi.musicstreamingservice.dto.ActiveSongMetadata;
 import com.aremi.musicstreamingservice.service.PreloadService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,10 +58,10 @@ public class PreloadController {
      */
     @PostMapping("/activeSong")
     @PreAuthorize("hasRole('STREAMER')")
-    public Mono<ResponseEntity<Void>> preloadActiveSong(@AuthenticationPrincipal Jwt principal) {
+    public Mono<ResponseEntity<ActiveSongMetadata>> preloadActiveSong(@AuthenticationPrincipal Jwt principal) {
         String userId = principal.getSubject();
         return preloadService.preloadActiveSong(userId)
-                .thenReturn(ResponseEntity.ok().build());
+                .map(ResponseEntity::ok);
     }
 
     /*

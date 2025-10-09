@@ -3,8 +3,10 @@ package com.aremi.musicstreamingservice.service;
 import com.aremi.musicstreamingservice.exception.ChunkNotFoundException;
 import com.aremi.musicstreamingservice.io.AudioFileReader;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
@@ -34,12 +36,16 @@ import reactor.core.publisher.Mono;
 public class StreamingService extends AbstractChunkService {
 
     private final StreamingSessionService streamingSessionService;
+    private final PreloadService preloadService;
 
     public StreamingService(AudioFileReader audioFileReader,
-                            ReactiveRedisTemplate<String, byte[]> redisTemplate,
-                            StreamingSessionService streamingSessionService) {
-        super(audioFileReader, redisTemplate);
+                            ReactiveRedisTemplate<String, byte[]> chunksRedisTemplate,
+                            @Qualifier("metadataRedisTemplate") ReactiveRedisTemplate<String, String> metadataRedisTemplate,
+                            StreamingSessionService streamingSessionService,
+                            PreloadService preloadService) {
+        super(audioFileReader, chunksRedisTemplate, metadataRedisTemplate);
         this.streamingSessionService = streamingSessionService;
+        this.preloadService = preloadService;
     }
 
     /**
@@ -66,5 +72,51 @@ public class StreamingService extends AbstractChunkService {
 
         //TODO: fargli chiamare PreloadService.preloadNextChunk(userId, info, index)
     }
+
+    /**
+     * Stream continuo dei chunk audio della canzone attiva dell'utente.
+     * <p>
+     * Recupera i metadati della canzone attiva, legge il numero totale di chunk
+     * da Redis (con fallback su disco), e costruisce un {@code Flux<byte[]>}
+     * che serve ciascun chunk in sequenza, precaricando in background i successivi.
+     * </p>
+     *
+     * @param userId identificativo univoco dell'utente
+     * @return flusso reattivo di chunk audio
+     */
+    public Flux<byte[]> streamActiveSong(String userId) {
+        return streamingSessionService.getActiveSong(userId)
+                .flatMapMany(info ->
+                        getTotalChunksFromRedisOrDisk(info)
+                                .map(Integer::parseInt)
+                                .flatMapMany(totalChunks -> {
+                                    if (totalChunks <= 0) {
+                                        log.warn("⚠️ Nessun chunk disponibile per songId={}, filePath={}", info.songId(), info.filePath());
+                                        return Flux.empty();
+                                    }
+
+                                    log.info("🎧 Streaming songId={} per userId={}, chunks={}", info.songId(), userId, totalChunks);
+
+                                    return Flux.range(0, totalChunks)
+                                            .buffer(MAX_CHUNKS_TO_PRELOAD)
+                                            .concatMap(bufferedIndexes -> {
+                                                Flux<byte[]> servingFlux = Flux.fromIterable(bufferedIndexes)
+                                                        .concatMap(index -> getChunkFromRedisOrDisk(userId, info, index)
+                                                                .onErrorResume(ex -> {
+                                                                    log.error("❌ Errore nel chunk {}: userId={}, songId={}", index, userId, info.songId(), ex);
+                                                                    return Mono.empty();
+                                                                })
+                                                        );
+
+                                                int preloadStart = bufferedIndexes.getLast();
+                                                Mono<Void> preload = preloadService.preloadNextChunks(userId, info, preloadStart);
+
+                                                return preload.thenMany(servingFlux);
+                                            });
+
+                                })
+                );
+    }
+
 }
 

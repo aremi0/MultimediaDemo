@@ -70,7 +70,7 @@ function onLoginSuccess() {
 
     // Trigger evento di pre-caching del brano più ascoltato al login-success
     // Invia POST verso music-streaming-service
-    fetch("https://${DOMAIN_NAME}/api/music-streaming-service/v1/private/preload/login", {
+    fetch("https://${DOMAIN_NAME}/api/music-streaming-service/v1/private/preload/activeSong", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -87,10 +87,15 @@ function onLoginSuccess() {
             throw new Error("Errore durante invio evento");
         } else {
             console.log("Evento inviato con successo");
+            return res.json();
         }
     })
+    .then(data => {
+        localStorage.setItem('activeSongInfo', JSON.stringify(data));
+        console.log("🎯 Metadati preload ricevuti:", data);
+    })
     .catch(err => {
-        console.error("Errore durante invio evento", err);
+        console.error("Errore nel preload della activeSong", err);
     });
 
 }

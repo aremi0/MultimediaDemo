@@ -1,11 +1,14 @@
 package com.aremi.musicstreamingservice.service;
 
+import com.aremi.musicstreamingservice.dto.ActiveSongMetadata;
 import com.aremi.musicstreamingservice.io.AudioFileReader;
-import com.aremi.musicstreamingservice.model.ActiveSongInfo;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 /**
  * Servizio responsabile del precaricamento dei chunk audio in cache.
@@ -33,10 +36,11 @@ public class PreloadService extends AbstractChunkService {
     private final UserStateService userStateService;
 
     public PreloadService(AudioFileReader audioFileReader,
-                          ReactiveRedisTemplate<String, byte[]> redisTemplate,
+                          ReactiveRedisTemplate<String, byte[]> chunksRedisTemplate,
+                          @Qualifier("metadataRedisTemplate") ReactiveRedisTemplate<String, String> metadataRedisTemplate,
                           StreamingSessionService streamingSessionService,
                           UserStateService userStateService) {
-        super(audioFileReader, redisTemplate);
+        super(audioFileReader, chunksRedisTemplate, metadataRedisTemplate);
         this.streamingSessionService = streamingSessionService;
         this.userStateService = userStateService;
     }
@@ -54,17 +58,38 @@ public class PreloadService extends AbstractChunkService {
      * @return un {@link Mono} che completa senza valore al termine del preload,
      *         oppure emette errore se il chunk non è disponibile
      */
-    public Mono<Void> preloadActiveSong(String userId) {
+    public Mono<ActiveSongMetadata> preloadActiveSong(String userId) {
         return streamingSessionService.getActiveSong(userId)
                 .switchIfEmpty(
-                        // fallback su Mongo se Redis non ha l'activeSong
                         userStateService.findActiveSongByUserId(userId)
                                 .flatMap(song -> streamingSessionService.setActiveSong(userId, song))
                 )
-                // qui non restituiamo i byte, ma usiamo doOnNext per triggerare il caching
-                .flatMap(info -> getChunkFromRedisOrDisk(userId, info, 0).then())
+                .flatMap(metadata -> {
+                    int preloadLimit = Math.min(MAX_CHUNKS_TO_PRELOAD, metadata.totalChunks());
+                    log.info("🚀 Precarico i primi {} chunk: userId={}, songId={}", preloadLimit, userId, metadata.songId());
+
+                    return Flux.range(0, preloadLimit)
+                            .concatMap(index -> getChunkFromRedisOrDisk(userId, metadata, index))
+                            .then(Mono.just(metadata));
+                })
                 .doOnSuccess(v -> log.info("✅ Preload completato per userId={}", userId))
                 .doOnError(ex -> log.error("❌ Errore durante preloadActiveSong: userId={}", userId, ex));
     }
+
+    public Mono<Void> preloadNextChunks(String userId, ActiveSongMetadata info, int startIndex) {
+        return getTotalChunksFromRedisOrDisk(info)
+                .map(Integer::parseInt)
+                .flatMapMany(totalChunks -> {
+                    int preloadStart = startIndex + 1;
+                    int preloadEnd = Math.min(preloadStart + MAX_CHUNKS_TO_PRELOAD, totalChunks);
+
+                    return Flux.range(preloadStart, preloadEnd - preloadStart)
+                            .concatMap(index -> getChunkFromRedisOrDisk(userId, info, index)
+                                    .doOnNext(chunk -> log.info("📦 Precaricato chunk {}: userId={}, songId={}", index, userId, info.songId()))
+                            );
+                })
+                .then(); // Mono<Void>
+    }
+
 }
 

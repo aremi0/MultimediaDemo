@@ -1,8 +1,8 @@
 package com.aremi.musicstreamingservice.service;
 
+import com.aremi.musicstreamingservice.dto.ActiveSongMetadata;
 import com.aremi.musicstreamingservice.exception.ChunkNotFoundException;
 import com.aremi.musicstreamingservice.io.AudioFileReader;
-import com.aremi.musicstreamingservice.model.ActiveSongInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
@@ -36,11 +36,14 @@ import java.time.Duration;
 @RequiredArgsConstructor
 public abstract class AbstractChunkService {
 
+    protected static final int MAX_CHUNKS_TO_PRELOAD = 3;
+
     /** Tempo di vita (TTL) dei chunk salvati in Redis. */
     protected static final Duration CHUNK_TTL = Duration.ofMinutes(5);
 
     protected final AudioFileReader audioFileReader;
-    protected final ReactiveRedisTemplate<String, byte[]> redisTemplate;
+    protected final ReactiveRedisTemplate<String, byte[]> chunksRedisTemplate;
+    private final ReactiveRedisTemplate<String, String> metadataRedisTemplate;
 
     /**
      * Recupera un chunk dalla cache Redis o, in caso di mancanza, dal file system.
@@ -55,26 +58,46 @@ public abstract class AbstractChunkService {
      * @param index  indice del chunk da recuperare (>= 0)
      * @return un {@link Mono} contenente i byte del chunk, oppure errore se non trovato
      */
-    protected Mono<byte[]> getChunkFromRedisOrDisk(String userId, ActiveSongInfo info, int index) {
-        String key = buildChunkKey(userId, info.songId(), index);
+    protected Mono<byte[]> getChunkFromRedisOrDisk(String userId, ActiveSongMetadata info, int index) {
+        String chunkKey = buildChunkKey(userId, info.songId(), index);
 
-        return redisTemplate.opsForValue().get(key)
+        return chunksRedisTemplate.opsForValue().get(chunkKey)
                 .flatMap(chunk -> {
-                    log.info("✅ Redis HIT: userId={}, songId={}, index={}, size={} bytes",
-                            userId, info.songId(), index, chunk.length);
-                    asyncCache(key, chunk);
-                    return Mono.just(chunk);
+                    log.info("✅ Redis HIT: userId={}, songId={}, index={}, size={} bytes", userId, info.songId(), index, chunk.length);
+
+                    return cacheChunk(chunkKey, chunk);
                 })
                 .switchIfEmpty(Mono.defer(() -> {
                     log.warn("❌ Redis MISS: userId={}, songId={}, index={}", userId, info.songId(), index);
                     return audioFileReader.readChunk(info.filePath(), index)
-                            .doOnNext(chunk -> {
+                            .flatMap(chunk -> {
                                 log.info("📂 Chunk letto da disco: userId={}, songId={}, index={}, size={} bytes",
                                         userId, info.songId(), index, chunk.length);
-                                asyncCache(key, chunk);
+
+                                return cacheChunk(chunkKey, chunk);
                             })
                             .switchIfEmpty(Mono.error(new ChunkNotFoundException(index)));
                 }));
+    }
+
+    //TODO da sistemare
+    protected Mono<String> getTotalChunksFromRedisOrDisk(ActiveSongMetadata info) {
+        String metadataKey = buildMetadataKey(info.songId());
+
+        return metadataRedisTemplate.opsForValue().get(metadataKey)
+                .flatMap(metadata -> {
+                    log.info("✅ Redis HIT: songId={}, metadata={}", info.songId(), metadata);
+                    asyncCache(metadataKey, metadata);
+                    return Mono.just(metadata);
+                })
+                .switchIfEmpty(Mono.defer(() ->
+                        audioFileReader.calculateTotalChunks(info.filePath())
+                                .map(String::valueOf)
+                                .doOnNext(totalChunks -> {
+                                    log.info("📊 Calcolati totalChunks da disco: songId={}, totalChunks={}", info.songId(), totalChunks);
+                                    asyncCache(metadataKey, totalChunks);
+                                })
+                ));
     }
 
     /**
@@ -84,10 +107,26 @@ public abstract class AbstractChunkService {
      * @param key   chiave Redis del chunk
      * @param chunk contenuto del chunk da salvare
      */
-    private void asyncCache(String key, byte[] chunk) {
+    private Mono<byte[]> cacheChunk(String key, byte[] chunk) {
+        return chunksRedisTemplate.opsForValue()
+                .set(key, chunk, CHUNK_TTL)
+                .doOnSuccess(ok -> log.info("🧠 Chunk salvato su Redis: key={}, size={} bytes", key, chunk.length))
+                .doOnError(ex -> log.error("❌ Errore salvataggio chunk: key={}, size={} bytes", key, chunk.length, ex))
+                .thenReturn(chunk);
+    }
+
+
+    /**
+     * Aggiorna il TTL di un totalChunks già presente in Redis o lo inserisce se non esisteva.
+     * L'operazione viene eseguita in modo asincrono su un thread separato.
+     *
+     * @param key   chiave Redis del totalChunks
+     * @param totalChunks contenuto del totalChunks da salvare
+     */
+    private void asyncCache(String key, String totalChunks) {
         Mono.fromRunnable(() -> {
-            redisTemplate.opsForValue().set(key, chunk, CHUNK_TTL).subscribe();
-            log.info("🧠 Chunk salvato su Redis: key={}, size={} bytes", key, chunk.length);
+            metadataRedisTemplate.opsForValue().set(key, totalChunks, CHUNK_TTL).subscribe();
+            log.info("🧠 Chunk salvato su Redis: key={}, value={} chunk", key, totalChunks);
         }).subscribeOn(Schedulers.boundedElastic()).subscribe();
     }
 
@@ -101,5 +140,15 @@ public abstract class AbstractChunkService {
      */
     protected String buildChunkKey(String userId, String songId, int index) {
         return "preload:%s:%s:%d".formatted(userId, songId, index);
+    }
+
+    /**
+     * Costruisce la chiave Redis per i totalChunks di una canzone.
+     *
+     * @param songId identificativo della canzone
+     * @return chiave Redis univoca per la canzone
+     */
+    protected String buildMetadataKey(String songId) {
+        return "metadata:%s".formatted(songId);
     }
 }

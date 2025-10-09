@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
@@ -35,13 +36,22 @@ import reactor.core.publisher.Mono;
 
 @Slf4j
 @RestController
-@RequestMapping("/v1/private/stream")
+@RequestMapping("/v1/private")
 @RequiredArgsConstructor
 @Validated
 @Monitor
 public class StreamingController {
 
     private final StreamingService streamingService;
+
+    @GetMapping(value = "/stream", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    @PreAuthorize("hasRole('STREAMER')")
+    public Flux<byte[]> streamActiveSong(@AuthenticationPrincipal Jwt principal) {
+        String userId = principal.getSubject();
+        return streamingService.streamActiveSong(userId);
+    }
+
+
 
     /**
      * Restituisce il chunk audio richiesto della canzone attiva dell'utente.

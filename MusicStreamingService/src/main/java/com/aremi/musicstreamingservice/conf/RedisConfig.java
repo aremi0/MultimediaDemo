@@ -6,15 +6,36 @@ import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
 public class RedisConfig {
 
     @Bean
-    public ReactiveRedisTemplate<String, byte[]> reactiveRedisTemplate(ReactiveRedisConnectionFactory factory) {
+    public ReactiveRedisTemplate<String, byte[]> chunksRedisTemplate(ReactiveRedisConnectionFactory factory) {
         RedisSerializationContext<String, byte[]> context = RedisSerializationContext
                 .<String, byte[]>newSerializationContext(RedisSerializer.string())
                 .value(RedisSerializer.byteArray())
+                .build();
+
+        return new ReactiveRedisTemplate<>(factory, context);
+    }
+
+    @Bean
+    public ReactiveRedisTemplate<String, String> metadataRedisTemplate(ReactiveRedisConnectionFactory factory) {
+        RedisSerializationContext<String, String> context = RedisSerializationContext
+                .<String, String>newSerializationContext(new StringRedisSerializer())
+                .value(new StringRedisSerializer())
+                .build();
+
+        return new ReactiveRedisTemplate<>(factory, context);
+    }
+
+    @Bean
+    public ReactiveRedisTemplate<String, String> activeSongRedisTemplate(ReactiveRedisConnectionFactory factory) {
+        RedisSerializationContext<String, String> context = RedisSerializationContext
+                .<String, String>newSerializationContext(new StringRedisSerializer())
+                .value(new StringRedisSerializer())
                 .build();
 
         return new ReactiveRedisTemplate<>(factory, context);
