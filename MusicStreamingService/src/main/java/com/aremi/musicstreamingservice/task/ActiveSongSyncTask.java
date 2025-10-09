@@ -44,12 +44,12 @@ public class ActiveSongSyncTask {
 
         log.info("🔄 Inizio sincronizzazione activeSongId per {} utenti...", activeUsers.size());
 
-        Flux.fromIterable(activeUsers)
+/*        Flux.fromIterable(activeUsers)
                 .flatMap(userId -> streamingSessionService.getActiveSongId(userId)
                         .flatMap(songId -> userStateService.updateActiveSong(userId, songId))
                         .doOnError(ex -> log.error("❌ Errore sincronizzazione utente: userId={}", userId, ex))
                 )
                 .doOnComplete(() -> log.info("✅ Sincronizzazione completata."))
-                .subscribe();
+                .subscribe();*/
     }
 }
