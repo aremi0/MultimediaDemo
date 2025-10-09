@@ -1,6 +1,7 @@
 package com.aremi.musicstreamingservice.service;
 
 import com.aremi.musicstreamingservice.model.ActiveSongInfo;
+import com.aremi.musicstreamingservice.model.Song;
 import com.aremi.musicstreamingservice.repository.SongRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -50,36 +51,32 @@ public class StreamingSessionService {
     /**
      * Imposta la canzone attiva per l'utente in Redis.
      * <p>
-     * Recupera la canzone dal {@link SongRepository} per ottenere i metadati necessari,
-     * serializza un {@link ActiveSongInfo} in JSON e lo salva in Redis con un TTL.
+     * Serializza un {@link ActiveSongInfo} in JSON e lo salva in Redis con un TTL.
      * </p>
      *
      * @param userId identificativo univoco dell'utente
-     * @param songId identificativo della canzone da impostare come attiva
+     * @param song document Mongo della canzone da impostare come attiva
      * @return un {@link Mono} che completa al termine dell'operazione,
      *         oppure emette errore in caso di problemi di serializzazione o salvataggio
      */
-    public Mono<Void> setActiveSong(String userId, String songId) {
-        return songRepository.findById(songId)
-                .flatMap(song -> {
-                    String key = buildActiveSongKey(userId);
-                    try {
-                        String value = objectMapper.writeValueAsString(
-                                new ActiveSongInfo(song.getId(), song.getFilePath())
-                        );
+    public Mono<ActiveSongInfo> setActiveSong(String userId, Song song) {
+        String key = buildActiveSongKey(userId);
 
-                        return redisTemplate.opsForValue()
-                                .set(key, value, ACTIVE_SONG_TTL)
-                                .doOnSuccess(ok -> log.info("🎯 activeSong impostata su Redis: userId={}, songId={}, filePath={}",
-                                        userId, song.getId(), song.getFilePath()))
-                                .doOnError(ex -> log.error("❌ Errore impostazione activeSong: userId={}, songId={}", userId, songId, ex))
-                                .then();
+        try {
+            var activeSongInfo = new ActiveSongInfo(song.getId(), song.getFilePath());
+            String value = objectMapper.writeValueAsString(activeSongInfo);
 
-                    } catch (JsonProcessingException e) {
-                        log.error("❌ Errore serializzazione ActiveSongInfo: userId={}, songId={}", userId, songId, e);
-                        return Mono.error(e);
-                    }
-                });
+            return redisTemplate.opsForValue()
+                    .set(key, value, ACTIVE_SONG_TTL)
+                    .doOnSuccess(ok -> log.info("🎯 activeSong impostata su Redis: userId={}, songId={}, filePath={}",
+                            userId, song.getId(), song.getFilePath()))
+                    .doOnError(ex -> log.error("❌ Errore impostazione activeSong: userId={}, songId={}", userId, song.getClass(), ex))
+                    .thenReturn(activeSongInfo);
+
+        } catch (JsonProcessingException e) {
+            log.error("❌ Errore serializzazione ActiveSongInfo: userId={}, songId={}", userId, song.getId(), e);
+            return Mono.error(e);
+        }
     }
 
     /**

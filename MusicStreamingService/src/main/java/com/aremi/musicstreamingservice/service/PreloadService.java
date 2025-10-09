@@ -59,8 +59,7 @@ public class PreloadService extends AbstractChunkService {
                 .switchIfEmpty(
                         // fallback su Mongo se Redis non ha l'activeSong
                         userStateService.findActiveSongByUserId(userId)
-                                .flatMap(song -> streamingSessionService.setActiveSong(userId, song.getId())
-                                        .thenReturn(new ActiveSongInfo(song.getId(), song.getFilePath())))
+                                .flatMap(song -> streamingSessionService.setActiveSong(userId, song))
                 )
                 // qui non restituiamo i byte, ma usiamo doOnNext per triggerare il caching
                 .flatMap(info -> getChunkFromRedisOrDisk(userId, info, 0).then())
