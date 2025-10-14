@@ -81,7 +81,7 @@ public abstract class AbstractChunkService {
     }
 
     //TODO da sistemare
-    protected Mono<String> getTotalChunksFromRedisOrDisk(ActiveSongMetadata info) {
+/*    protected Mono<String> getTotalChunksFromRedisOrDisk(ActiveSongMetadata info) {
         String metadataKey = buildMetadataKey(info.songId());
 
         return metadataRedisTemplate.opsForValue().get(metadataKey)
@@ -98,7 +98,7 @@ public abstract class AbstractChunkService {
                                     asyncCache(metadataKey, totalChunks);
                                 })
                 ));
-    }
+    }*/
 
     /**
      * Aggiorna il TTL di un chunk già presente in Redis o lo inserisce se non esisteva.
