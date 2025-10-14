@@ -69,18 +69,12 @@ function onLoginSuccess() {
     document.getElementById('token').innerText = keycloak.token;
 
     // Trigger evento di pre-caching del brano più ascoltato al login-success
-    // Invia POST verso music-streaming-service
+    // Invia GET verso music-streaming-service
     fetch("https://${DOMAIN_NAME}/api/music-streaming-service/v1/private/preload/activeSong", {
-        method: "POST",
         headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${keycloak.token}`
-        },
-        body: JSON.stringify({
-            eventType: "login-success",
-            userId: keycloak.tokenParsed.sub,
-            timestamp: new Date().toISOString()
-        })
+        }
     })
     .then(res => {
         if (!res.ok) {

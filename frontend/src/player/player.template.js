@@ -45,14 +45,23 @@ function loadActiveSong() {
 
                 function pump() {
                     return reader.read().then(({ done, value }) => {
-                        if (done) {
-                            mediaSource.endOfStream();
+                        if (done || !value) {
+                            const waitForBuffer = () => {
+                                if (!sourceBuffer.updating) {
+                                    mediaSource.endOfStream();
+                                } else {
+                                    setTimeout(waitForBuffer, 50); // aspetta e riprova
+                                }
+                            };
+                            waitForBuffer();
                             return;
                         }
+
                         sourceBuffer.appendBuffer(value);
                         return pump();
                     });
                 }
+
 
                 return pump();
             })
