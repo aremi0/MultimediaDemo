@@ -76,19 +76,15 @@ public class PreloadService extends AbstractChunkService {
                 .doOnError(ex -> log.error("❌ Errore durante preloadActiveSong: userId={}", userId, ex));
     }
 
-    public Mono<Void> preloadNextChunks(String userId, ActiveSongMetadata info, int startIndex) {
-        return getTotalChunksFromRedisOrDisk(info)
-                .map(Integer::parseInt)
-                .flatMapMany(totalChunks -> {
-                    int preloadStart = startIndex + 1;
-                    int preloadEnd = Math.min(preloadStart + MAX_CHUNKS_TO_PRELOAD, totalChunks);
+    public Mono<Void> preloadNextChunks(String userId, ActiveSongMetadata info, int lastBufferedIndex) {
+        int preloadStart = lastBufferedIndex + 1;
+        int preloadEnd = Math.min(preloadStart + MAX_CHUNKS_TO_PRELOAD, info.totalChunks());
+        log.info("🚀 Precarico i {} chunk successivi, startChunk={}, endChunk={}", MAX_CHUNKS_TO_PRELOAD, preloadStart, preloadEnd);
 
-                    return Flux.range(preloadStart, preloadEnd - preloadStart)
-                            .concatMap(index -> getChunkFromRedisOrDisk(userId, info, index)
-                                    .doOnNext(chunk -> log.info("📦 Precaricato chunk {}: userId={}, songId={}", index, userId, info.songId()))
-                            );
-                })
-                .then(); // Mono<Void>
+        return Flux.range(preloadStart, preloadEnd - preloadStart)
+                .concatMap(index -> getChunkFromRedisOrDisk(userId, info, index)
+                        .doOnNext(chunk -> log.info("📦 Precaricato chunk {}: userId={}, songId={}", index, userId, info.songId()))
+                ).then();
     }
 
 }

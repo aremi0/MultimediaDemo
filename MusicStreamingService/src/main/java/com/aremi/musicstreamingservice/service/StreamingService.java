@@ -86,36 +86,32 @@ public class StreamingService extends AbstractChunkService {
      */
     public Flux<byte[]> streamActiveSong(String userId) {
         return streamingSessionService.getActiveSong(userId)
-                .flatMapMany(info ->
-                        getTotalChunksFromRedisOrDisk(info)
-                                .map(Integer::parseInt)
-                                .flatMapMany(totalChunks -> {
-                                    if (totalChunks <= 0) {
-                                        log.warn("⚠️ Nessun chunk disponibile per songId={}, filePath={}", info.songId(), info.filePath());
-                                        return Flux.empty();
-                                    }
+                .flatMapMany(songMetadata -> {
+                    if (songMetadata.totalChunks() <= 0) {
+                        log.warn("⚠️ Nessun chunk disponibile per songId={}, filePath={}", songMetadata.songId(), songMetadata.filePath());
+                        return Flux.empty();
+                    }
 
-                                    log.info("🎧 Streaming songId={} per userId={}, chunks={}", info.songId(), userId, totalChunks);
+                    log.info("🎧 Streaming songId={} per userId={}, totalChunks={}", songMetadata.songId(), userId, songMetadata.totalChunks());
 
-                                    return Flux.range(0, totalChunks)
-                                            .buffer(MAX_CHUNKS_TO_PRELOAD)
-                                            .concatMap(bufferedIndexes -> {
-                                                Flux<byte[]> servingFlux = Flux.fromIterable(bufferedIndexes)
-                                                        .concatMap(index -> getChunkFromRedisOrDisk(userId, info, index)
-                                                                .onErrorResume(ex -> {
-                                                                    log.error("❌ Errore nel chunk {}: userId={}, songId={}", index, userId, info.songId(), ex);
-                                                                    return Mono.empty();
-                                                                })
-                                                        );
+                    return Flux.range(0, songMetadata.totalChunks())
+                            .buffer(MAX_CHUNKS_TO_PRELOAD)
+                            .concatMap(bufferedIndexes -> {
+                                Flux<byte[]> servingFlux = Flux.fromIterable(bufferedIndexes)
+                                        .concatMap(index -> getChunkFromRedisOrDisk(userId, songMetadata, index)
+                                                .onErrorResume(ex -> {
+                                                    log.error("❌ Errore nel chunk {}: userId={}, songId={}", index, userId, songMetadata.songId(), ex);
+                                                    return Mono.empty();
+                                                })
+                                        );
 
-                                                int preloadStart = bufferedIndexes.getLast();
-                                                Mono<Void> preload = preloadService.preloadNextChunks(userId, info, preloadStart);
+                                int lastBufferedChunk = bufferedIndexes.getLast();
+                                Mono<Void> preload = preloadService.preloadNextChunks(userId, songMetadata, lastBufferedChunk);
 
-                                                return preload.thenMany(servingFlux);
-                                            });
-
-                                })
-                );
+                                return preload.thenMany(servingFlux);
+                            });
+                })
+                .doOnError(ex -> log.error("❌ Errore nel flusso di streaming: userId={}, ex={}", userId, ex));
     }
 
 }

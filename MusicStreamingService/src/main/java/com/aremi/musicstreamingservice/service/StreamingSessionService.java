@@ -133,6 +133,8 @@ public class StreamingSessionService {
                                 })
                 )
                 .doOnError(ex -> log.error("❌ Errore recupero activeSong: userId={}, key={}", userId, key, ex));
+
+        //TODO aggiungere fallback su MONGO
     }
 
 
