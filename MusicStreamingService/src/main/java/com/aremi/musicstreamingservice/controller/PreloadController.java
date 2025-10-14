@@ -10,7 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
@@ -56,7 +56,7 @@ public class PreloadController {
      * @param principal il token JWT dell'utente autenticato, da cui viene estratto lo userId
      * @return {@link ResponseEntity} con stato {@code 200 OK} se il preload è stato avviato correttamente
      */
-    @PostMapping("/activeSong")
+    @GetMapping("/activeSong")
     @PreAuthorize("hasRole('STREAMER')")
     public Mono<ResponseEntity<ActiveSongMetadata>> preloadActiveSong(@AuthenticationPrincipal Jwt principal) {
         String userId = principal.getSubject();
